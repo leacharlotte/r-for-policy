@@ -1,0 +1,24 @@
+{
+  "name": "r-for-policy",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1",
+    "build": "vite build --base=./",
+    "preview": "vite preview --host 127.0.0.1",
+    "predev": "node scripts/generate-materials.mjs",
+    "prebuild": "node scripts/generate-materials.mjs",
+    "generate:materials": "node scripts/generate-materials.mjs"
+  },
+  "dependencies": {
+    "@codemirror/commands": "^6.8.1",
+    "@codemirror/language": "^6.11.0",
+    "@codemirror/legacy-modes": "^6.5.1",
+    "@codemirror/state": "^6.5.2",
+    "@codemirror/view": "^6.36.5"
+  },
+  "devDependencies": {
+    "vite": "^7.1.0"
+  }
+}
