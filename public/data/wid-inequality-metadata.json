@@ -1,0 +1,63 @@
+{
+  "publisher": "World Inequality Database (WID.world)",
+  "retrieved_at_utc": "2026-09-14T19:20:19.961587+00:00",
+  "source_page": "https://wid.world/data/",
+  "definition_url": "https://wid.world/codes-dictionary/",
+  "methodology_url": "https://wid.world/methodology/",
+  "country_sources": {
+    "FR": {
+      "url": "https://wid.world/bulk_download/WID_data_FR.csv",
+      "last_modified": "Wed, 09 Sep 2026 13:50:52 GMT",
+      "sha256": "3b7303efb79f61dc4c94e42c6e3e0394b5ac8c7e791526c50fa8c3f4d4547f57",
+      "bytes": 68459567
+    },
+    "DE": {
+      "url": "https://wid.world/bulk_download/WID_data_DE.csv",
+      "last_modified": "Wed, 09 Sep 2026 13:50:22 GMT",
+      "sha256": "22b3b5f698bb2af47d038ef00c84306d992bd6d12b61a265ed845ee26df46a7a",
+      "bytes": 35454058
+    },
+    "CH": {
+      "url": "https://wid.world/bulk_download/WID_data_CH.csv",
+      "last_modified": "Wed, 09 Sep 2026 13:49:58 GMT",
+      "sha256": "e34ce9e770dcc0df89968ab2cd3220a0c8f31f335fa531dda066e1b93f591e24",
+      "bytes": 23941415
+    },
+    "US": {
+      "url": "https://wid.world/bulk_download/WID_data_US.csv",
+      "last_modified": "Wed, 09 Sep 2026 13:55:48 GMT",
+      "sha256": "ffca2b9eef776420b4f2754b2598a6bc81382f8f9604f78327aa6c02341d06b4",
+      "bytes": 53297839
+    }
+  },
+  "variable": [
+    "sptincj992"
+  ],
+  "concept": "Share of pretax national income, equal-split adults aged 20 and older",
+  "years": [
+    1980,
+    2024
+  ],
+  "countries": {
+    "FR": "France",
+    "DE": "Germany",
+    "CH": "Switzerland",
+    "US": "United States"
+  },
+  "groups": {
+    "p0p50": "bottom50",
+    "p90p100": "top10"
+  },
+  "rows": 360,
+  "missing_values": 0,
+  "transformations": [
+    "Select the listed countries, years, population unit and percentile groups.",
+    "Replace country and percentile codes with readable labels.",
+    "Rename value to income_share; preserve every selected value as supplied.",
+    "Retain original fields and data_quality scores in wid-inequality-source.csv.",
+    "No observations simulated, interpolated, rounded or deleted within the selected series by this project."
+  ],
+  "caveat": "WID publishes estimates assembled from multiple sources. Its series can include interpolation or extrapolation and may be revised. Country methods and source coverage differ.",
+  "extract_sha256": "d30e9175518617616eb042e69fd71b561d35e7241f2fe701ec53a50ddc241c38",
+  "teaching_csv_sha256": "a6b8a735bdf9065129da82a362c8c70b5dfd3620326e6ffe07abaa9dfc441ad8"
+}

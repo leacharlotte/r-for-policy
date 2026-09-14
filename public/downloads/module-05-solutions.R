@@ -1,5 +1,5 @@
 # R for Policy — Module 05: Functions
-# Complete module: 5 lessons, all worked examples and exercise solutions.
+# Complete module: 4 lessons, all worked examples and exercise solutions.
 # These are the reference solutions; they do not include your browser edits.
 # Run sections in order, or source this entire file in R.
 
@@ -154,37 +154,3 @@ comparison <- df %>%
     tax_change = tax_reform - tax_base
   )
 head(comparison)
-
-# ======================================================================
-# LESSON 5: Calculate a weighted mean
-# ======================================================================
-
-# Prepare the data for this lesson
-df <- read.csv(text = income_profile_csv)
-
-# WORKED EXAMPLE
-income <- c(20000, 50000)
-people <- c(100, 20)
-
-# Give each group an equal contribution
-mean(income)
-
-# Give each person an equal contribution
-total_income <- sum(income * people)
-total_people <- sum(people)
-average_income <- total_income / total_people
-average_income
-
-# The built-in function gives the same result
-weighted.mean(income, w = people)
-
-# EXERCISE SOLUTION: Calculate average income from the data frame
-average_income <- weighted.mean(
-  df$annual_income,
-  w = df$n_people
-)
-average_income
-
-# Alternative: calculate the same mean inside summarise()
-df %>%
-  summarise(average_income = weighted.mean(annual_income, w = n_people))

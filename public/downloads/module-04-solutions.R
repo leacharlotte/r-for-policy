@@ -1,5 +1,5 @@
 # R for Policy — Module 04: Creating graphs
-# Complete module: 3 lessons, all worked examples and exercise solutions.
+# Complete module: 4 lessons, all worked examples and exercise solutions.
 # These are the reference solutions; they do not include your browser edits.
 # Run sections in order, or source this entire file in R.
 
@@ -92,3 +92,53 @@ p <- ggplot(plot_data, aes(
   ) +
   theme_minimal()
 p
+
+# ======================================================================
+# LESSON 4: Save a graph
+# ======================================================================
+
+# Reuse the labelled graph from the previous worked example, then save it with ggsave().
+# On the website, download the PNG and PDF below the output. In RStudio, ggsave() saves them in the current working directory.
+# getwd() shows the output folder. An existing file with the same name is replaced.
+# Your turn: save p as my_income_plot.png at 16 by 10 cm and 300 dpi.
+# ggsave("my_income_plot.png", plot = p, width = 16, height = 10, units = "cm", dpi = 300, bg = "white")
+
+# Prepare the data for this lesson
+df <- read.csv(text = income_profile_csv)
+p <- ggplot(df, aes(x = age, y = annual_income, colour = gender)) +
+  geom_line() +
+  labs(
+    title = "Income profiles by age",
+    x = "Age", y = "Annual income (in $)",
+    colour = "Gender", caption = "Synthetic data for practice"
+  ) +
+  theme_minimal()
+
+# WORKED EXAMPLE
+library(ggplot2)
+
+# Recreate and display the graph from the previous lesson
+p <- ggplot(df, aes(x = age, y = annual_income, colour = gender)) +
+  geom_line() +
+  labs(
+    title = "Income profiles by age",
+    x = "Age", y = "Annual income (in $)",
+    colour = "Gender", caption = "Synthetic data for practice"
+  ) +
+  theme_minimal()
+p
+
+# Save this graph as an image file
+ggsave("income_profiles.png", plot = p,
+       width = 18, height = 12, units = "cm", dpi = 300, bg = "white")
+
+# Save the same graph as a PDF
+ggsave("income_profiles.pdf", plot = p,
+       width = 18, height = 12, units = "cm", bg = "white")
+
+# EXERCISE SOLUTION: Save the graph as a PNG
+p
+
+ggsave("my_income_plot.png", plot = p,
+       width = 16, height = 10, units = "cm",
+       dpi = 300, bg = "white")

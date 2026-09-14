@@ -3,14 +3,13 @@ import { module3 } from './module3.js';
 import { module4 } from './module4.js';
 import { module5 } from './module5.js';
 import { module6 } from './module6.js';
-// NPV & CPI is temporarily hidden; its lessons remain in module7.js.
-// import { module7 } from './module7.js';
-// R & RStudio currently appears as Module 07.
+import { module7 } from './module7.js';
 import { module8 } from './module8.js';
+import { module9 } from './module9.js';
 // Lesson text is authored as HTML; student code/output is always rendered as text.
 export const modules = [
   {
-    id: 'module-1', number: '01', title: 'First steps in R',
+    id: 'module-1', number: '01', title: 'First steps in R', titleMarker: 'Basics',
     description: 'Use a fictional UBI expansion to practise arithmetic, powers, objects and debugging.',
     lessons: [
       {
@@ -60,6 +59,7 @@ export const modules = [
   module4,
   module5,
   module6,
-  // module7,
+  module7,
   module8,
+  module9,
 ];

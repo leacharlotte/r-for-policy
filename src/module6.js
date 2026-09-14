@@ -1,10 +1,12 @@
+import { incomeDataNote } from './dataset-notes.js';
+
 const taxFunction = `tax_payment <- function(y, tau = -1, rho = 0.12) {
   y - ((1 - tau) / (1 - rho)) * y^(1 - rho)
 }`;
 const ready = {data:true, setup:'df <- read.csv("data/data_incomes.csv")',
-  setupNote:'<code>df</code> contains mean annual income (column <code>annual_income</code>) and the number of people for women and men at each age from 20 to 65. The tax function is included in each editor.'};
+  setupNote:incomeDataNote};
 export const module6 = {
-  id:'module-6',number:'06',title:'Loops',
+  id:'module-6',number:'06',title:'Loops',titleMarker:'Advanced',
   description:'Repeat calculations with for, save the results and compare tax payments under different assumptions.',
   lessons:[
     {
@@ -88,7 +90,6 @@ export const module6 = {
       id:'loops-scenarios',title:'Apply a function to a dataset',heading:'One dataset. Several tax schedules.',...ready,packages:['tidyr','ggplot2'],
       exampleSetupNote:ready.setupNote,
       intro:'Use a loop to add a new column of tax payments to the data frame for each value of rho.',
-      titleMarker:'More advanced',titleMarkerPosition:'before',
       section:'Create a tax column for each value of rho',
       body:`<p>We want to compare tax payments under different values of <code>rho</code>. A loop lets us repeat the same calculation for each value of <code>rho</code>. We use the same incomes each time and keep <code>tau = -1</code>.</p>
         <p><code>for (rho in rho_values)</code> uses each value in <code>rho_values</code> in turn. In the example below, R first uses <code>rho = 0.1</code>, then <code>rho = 0.15</code>. Each time, we create one new column of tax payments.</p>

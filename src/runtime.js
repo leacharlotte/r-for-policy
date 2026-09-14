@@ -87,12 +87,16 @@ export function restartR() {
 
 export async function execute(code, lesson, check = false) {
   if (busy) throw new Error('Another calculation is running. Wait for it to finish or select Stop R.');
+  if (!code.trim()) return { output: '', error: 'Write your R code in the editor first. You can open a hint if you need help getting started.' };
   if (/_{6,}/.test(code)) return { output: '', error: 'Replace each ______ with your R code, then try again.' };
   busy = true;
   const version = generation;
   const cancelled = new Promise((_, reject) => { cancelCurrent = reject; });
   let shelter;
   let deadline;
+  let runtime;
+  let outputDirectory;
+  let previousDirectory;
   try {
     // Startup and package downloads get more time than a learner calculation.
     const r = await Promise.race([
@@ -102,10 +106,17 @@ export async function execute(code, lesson, check = false) {
     ]);
     clearTimeout(deadline);
     if (version !== generation) throw new Error('R was stopped. Your code is still in the editor.');
+    runtime = r;
     announce('running', 'Running your code');
     shelter = await new r.Shelter();
     const env = await shelter.evalR('new.env(parent = globalenv())');
     if (lesson.setup) await shelter.evalR(lesson.setup, { env });
+    if (lesson.downloadFiles?.length) {
+      // Fresh files per run prevent earlier exports from satisfying a new answer.
+      previousDirectory = await r.evalRString('getwd()');
+      outputDirectory = await r.evalRString('local({ folder <- tempfile("course-export-"); dir.create(folder); folder })');
+      await r.evalRVoid('setwd(.folder)', { env: { '.folder': outputDirectory } });
+    }
     const result = await Promise.race([
       shelter.captureR(code, { env, captureGraphics: true, withAutoprint: true }),
       cancelled,
@@ -123,8 +134,23 @@ export async function execute(code, lesson, check = false) {
       }
     }
     const response = { output: lines.join('\n').slice(0, 16000), error, images: result.images };
+    if (outputDirectory) {
+      await r.evalRVoid('setwd(.folder)', { env: { '.folder': outputDirectory } });
+      const filenames = (await r.evalRString('paste(list.files()[!dir.exists(list.files())], collapse = "\\n")')).split('\n').filter(Boolean);
+      response.files = [];
+      for (const name of filenames) {
+        const extension = name.split('.').pop().toLowerCase();
+        if (!lesson.downloadFiles.includes(extension)) continue;
+        const bytes = await r.FS.readFile(`${outputDirectory}/${name}`);
+        // R can open an empty default graphics file while switching devices.
+        if (!bytes.length) continue;
+        const type = {png:'image/png',csv:'text/csv;charset=utf-8',xlsx:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',pdf:'application/pdf'}[extension] || 'application/octet-stream';
+        response.files.push({ name, bytes, type });
+      }
+    }
     if (check && !error) {
       await env.bind('.answer', result.result);
+      if (lesson.checkGraphics) await env.bind('.plot_count', result.images?.length || 0);
       if (lesson.checkPrintedOutput) {
         await env.bind('.printed_output', result.output.filter(item => item.type === 'stdout').map(item => item.data).join('\n'));
       }
@@ -145,6 +171,9 @@ export async function execute(code, lesson, check = false) {
   } finally {
     clearTimeout(deadline);
     if (version === generation) {
+      if (outputDirectory) {
+        await runtime.evalRVoid('setwd(.previous); unlink(.folder, recursive = TRUE)', { env: { '.previous': previousDirectory, '.folder': outputDirectory } }).catch(() => {});
+      }
       if (shelter) await shelter.purge().catch(() => {});
       busy = false;
       cancelCurrent = undefined;

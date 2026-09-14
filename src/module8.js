@@ -1,86 +1,157 @@
+import { inequalityDataNote, inequalityFullDescription, inequalityAnalysisNote, inequalityComparisonNote } from './dataset-notes.js';
+import { linePlotCheck } from './plot-checks.js';
+
+const source = '.wid_source <- read.csv("data/data_inequality.csv")';
+const analysisData = `local({ data <- .wid_source[.wid_source$year >= 2000, ]; data$share_pct <- data$income_share * 100; data })`;
+const comparisonData = `local({
+  data <- ${analysisData}
+  top <- data[data$group == "top10", c("country", "year", "share_pct")]
+  bottom <- data[data$group == "bottom50", c("country", "year", "share_pct")]
+  result <- merge(top, bottom, by = c("country", "year"))
+  names(result)[3:4] <- c("top10", "bottom50")
+  result
+})`;
+const topData = `local({ data <- ${analysisData}; data[data$group == "top10", ] })`;
+const rawSetup = `${source}\ndf <- .wid_source`;
+const analysisSetup = `${source}\ndf <- ${analysisData}`;
+const comparisonSetup = `${source}\ncomparison <- ${comparisonData}`;
+const plotCode = `p <- df %>%
+  filter(group == "top10") %>%
+  ggplot(aes(x = year, y = share_pct, colour = country)) +
+  geom_line() +
+  labs(x = "Year", y = "Top 10% income share (%)", colour = "Country", caption = "Source: WID.world") +
+  theme_minimal()
+p`;
+
+// Compare the data, accepting equivalent R methods and column/row ordering.
+const sameRows = (actual, expected, keys = ['country', 'year', 'group']) => `local({
+  actual <- ${actual}; expected <- ${expected}
+  keys <- c(${keys.map(key=>`"${key}"`).join(', ')})
+  if (!is.data.frame(actual) || !setequal(names(actual), names(expected))) FALSE else {
+    actual <- as.data.frame(actual); expected <- as.data.frame(expected)
+    actual <- actual[do.call(order, actual[keys]), names(expected), drop = FALSE]
+    expected <- expected[do.call(order, expected[keys]), , drop = FALSE]
+    rownames(actual) <- NULL; rownames(expected) <- NULL
+    isTRUE(all.equal(actual, expected, check.attributes = FALSE, tolerance = 1e-7))
+  }
+})`;
+const plotCheck = linePlotCheck({
+  data:topData, x:'year', y:'share_pct', colour:'country',
+  labels:{x:'Year', y:'Top 10% income share (%)', caption:'Source: WID.world'},
+});
+const taskDefaults = {data:true, files:['data_inequality.csv'], starter:''};
+
 export const module8 = {
-  id:'module-7', number:'07', title:'R & RStudio',
-  description:'Install R and RStudio, run a script and keep your tutorial work in a project.',
+  id:'module-8', number:'08', title:'Practice project', titleMarker:'Practice project',
+  description:'Use World Inequality Database data to compare income inequality across countries and over time. Write your own code in short steps.',
   lessons:[
     {
-      id:'desktop-install', title:'Install R and RStudio', guide:true,
-      heading:'Your own computer. The same R skills.',
-      intro:'Move from the browser exercises to RStudio on your computer. Follow these steps on the computer you will use for the tutorials.',
-      section:'Install R first, then RStudio Desktop',
-      body:`<p><strong>R</strong> performs the calculations. <strong>RStudio</strong> is the application in which you write scripts, run R and view results. Install both, in this order.</p>
-        <ol class="guide-steps">
-          <li><strong>Install R from CRAN.</strong> Choose your operating system below, download its installer and follow the installation steps.</li>
-        </ol>
-        <div class="install-options">
-          <div><h3>Windows</h3><p>Download the current R installer (<code>.exe</code>) and run it.</p><a href="https://cran.r-project.org/bin/windows/base/" target="_blank" rel="noopener noreferrer">R for Windows ↗</a></div>
-          <div><h3>macOS</h3><p>Choose the <code>.pkg</code> for Apple silicon (arm64) or Intel (x86_64). Find your chip under Apple menu → About This Mac.</p><a href="https://cran.r-project.org/bin/macosx/" target="_blank" rel="noopener noreferrer">R for macOS ↗</a></div>
-          <div><h3>Linux</h3><p>Follow CRAN’s instructions for your distribution.</p><a href="https://cran.r-project.org/bin/linux/" target="_blank" rel="noopener noreferrer">R for Linux ↗</a></div>
-        </div>
-        <ol class="guide-steps" start="2">
-          <li><strong>Install RStudio Desktop.</strong> Use the <a href="https://posit.co/download/rstudio-desktop/" target="_blank" rel="noopener noreferrer">free, open-source Desktop download from Posit</a> for your system. On Windows, run the installer; on Mac, open the disk image and drag RStudio to Applications. For Linux, follow the package instructions. Check the operating-system requirements on the download page.</li>
-          <li><strong>Open RStudio.</strong> Find the <strong>Console</strong> tab and its <code>&gt;</code> prompt. Type each line below there and press Enter. R should print its version and the answer <strong>4</strong>.</li>
-        </ol>`,
-      example:'# Run in the RStudio Console\nR.version.string\n2 + 2',
-      noteTitle:'Check the installation in RStudio.',
-      note:'The R interpreter on this website runs in your browser. Its results cannot confirm that R or RStudio is installed on your computer. If RStudio cannot find R, finish installing R, then close and reopen RStudio.',
-      guideAfter:'<p>Continue once <code>2 + 2</code> returns <code>4</code> in the RStudio Console. You can then run the same calculations and functions you used in this course.</p>',
-      downloadNotes:['Install R from https://cran.r-project.org/ first.', 'Then install RStudio Desktop: https://posit.co/download/rstudio-desktop/', 'Open RStudio and run the following lines in its Console. Expected answer: 4.'],
-      sources:[{label:'RStudio installation and downloads',url:'https://docs.posit.co/ide/user/'}],
+      ...taskDefaults, id:'inequality-import', title:'Read the WID data', heading:'How does income inequality differ across countries?',
+      intro:'Investigate how income is distributed in France, Germany, Switzerland and the United States.',
+      section:'Your practice project',
+      body:`<p>You will use data from the <a href="https://wid.world/data/" target="_blank" rel="noopener noreferrer">World Inequality Database (WID)</a> for 1980–2024. Compare the share of total income received by the <strong>top 10%</strong> and the <strong>bottom 50%</strong> of adults, then explore how the top 10% share has changed over time.</p>
+        <p>These are published estimates based on sources such as tax records, surveys and national accounts. We selected a small extract and simplified the labels; the income-share values are unchanged.</p>
+        <p>Write a few lines in each empty editor. Use the hints when needed. Each later task starts with the prepared results of the previous steps, so you only need to write the new code.</p>
+        <p><a href="data/data_inequality.csv" download>Download the WID extract</a></p>
+        <details class="data-dictionary"><summary>About these income estimates</summary><p>We use WID’s <strong>pretax national income</strong> measure for adults aged 20 and older. It includes labour and capital income and social-insurance benefits, before personal income taxes and other redistribution. WID uses an equal-split convention for income within couples or households.</p></details>`,
+      setup:source,
+      taskTitle:'Import the CSV',
+      task:'<p>Read <code>data/data_inequality.csv</code> into a data frame called <code>df</code>. Display its first six rows.</p>',
+      solution:'df <- read.csv("data/data_inequality.csv")\nhead(df)',
+      hints:['Use read.csv() to read the file and <- to save it as df.', 'Put "data/data_inequality.csv" in quotation marks. Then write head(df) to display the first six rows.'],
+      check:`exists("df", inherits = FALSE) && ${sameRows('df', '.wid_source')} && ${sameRows('.answer', '.wid_source[1:6, ]')}`,
+      success:'Correct: df contains the WID extract. Each displayed row describes an income group in one country and one year.',
+      mistakes:[{when:'!exists("df", inherits = FALSE)',message:'Save the imported data in an object called df.'},{when:'exists("df", inherits = FALSE) && is.data.frame(df) && nrow(df) == nrow(.wid_source)',message:'The data are loaded. Display the first six rows with head(df) as your last line.'}],
     },
     {
-      id:'desktop-script', title:'Write and run an R script', guide:true,
-      heading:'Write it once. Run it again.',
-      intro:'A script saves your instructions in a .R file. The Console shows what happens when those instructions run.',
-      section:'Find your way around RStudio',
-      body:`<p>RStudio usually has four main panes, as shown below. The <strong>Source</strong> pane appears when you open a script. If it is not visible, choose <strong>File → New File → R Script</strong>.</p>
-        <figure class="rstudio-overview">
-          <img src="images/rstudio-panes.png" width="2184" height="1964" alt="RStudio with Source at the top left, Console at the bottom left, Environment at the top right and Output with a plot at the bottom right." loading="lazy">
-          <figcaption>RStudio’s default layout. Screenshot: <a href="https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html" target="_blank" rel="noopener noreferrer">Posit’s user guide</a>.</figcaption>
-        </figure>
-        <dl class="rstudio-panes">
-          <div><dt><span>Top left</span>Source · your code</dt><dd>Write and edit your R scripts here. Use <strong>Run</strong> to execute the selected code.</dd></div>
-          <div><dt><span>Top right</span>Environment · your objects</dt><dd>See the objects you have created, such as variables, vectors, data frames and functions.</dd></div>
-          <div><dt><span>Bottom left</span>Console · commands and results</dt><dd>R executes commands here and shows results or error messages. You can also type commands at the <code>&gt;</code> prompt.</dd></div>
-          <div><dt><span>Bottom right</span>Output · figures and more</dt><dd><strong>Plots</strong> shows figures; <strong>Files</strong> shows files and folders; <strong>Packages</strong> lists installed packages; <strong>Help</strong> explains functions.</dd></div>
-        </dl>
-        <h2>Create a script and execute it in order</h2>
-        <ol class="guide-steps">
-          <li>Choose <strong>File → New File → R Script</strong> in RStudio. Paste the code below into the script editor.</li>
-          <li>Save it as <code>first_script.R</code> using <strong>Ctrl + S</strong> (Windows/Linux) or <strong>Cmd + S</strong> (Mac).</li>
-          <li>Put the cursor on a line and click <strong>Run</strong>. The shortcut is <strong>Ctrl + Enter</strong> on Windows/Linux or <strong>Cmd + Return</strong> on Mac. Select several lines to run them together.</li>
-          <li>Run the lines from top to bottom. The Console prints <strong>30,000</strong>; the <strong>Environment</strong> pane lists your objects, and <strong>Plots</strong> shows the graph.</li>
-        </ol>`,
-      example:'# A short script using fictional incomes\nincomes <- c(20000, 30000, 40000)\nmean_income <- mean(incomes)\nprint(mean_income)\n\nplot(incomes, type = "b",\n     xlab = "Observation", ylab = "Annual income")',
-      noteTitle:'Saving and running are separate actions.',
-      note:'Saving preserves the code in the file. Running sends it to R. When you change an input, run that line and all calculations that depend on it again. Objects remain available during an RStudio session; the browser exercises start fresh on each run.',
-      guideAfter:`<h2>Run the whole script</h2><p>Click <strong>Source</strong> in the script toolbar to execute the whole file. Explicit <code>print()</code> calls display results when sourcing; use <strong>Source with Echo</strong> in its menu to also show the commands.</p>
-        <p>Now change the first income to <code>25000</code>, save and run the script again. The new mean should be about <strong>31,666.67</strong>. In the Console, a <code>+</code> prompt means R is waiting for an unfinished expression; press <strong>Esc</strong> and check brackets or quotes.</p>
-        <h2>Inspect a data frame with View()</h2>
-        <p>In RStudio, <code>View(df)</code> opens the data frame <code>df</code> in the <strong>Data Viewer</strong>. It displays your data in rows and columns, similar to an Excel spreadsheet. You can scroll through the data and click a column heading to sort the displayed rows.</p>
-        <p>Try it with the incomes from your script. First store them in a data frame named <code>df</code>, then open it:</p>
-        <pre class="guide-inline-code"><code>df &lt;- data.frame(annual_income = incomes)
-View(df)</code></pre>
-        <p>To continue coding, click your script’s tab again.</p>`,
-      downloadNotes:['Default panes: Source (top left), Console (bottom left), Environment (top right), Output with Plots/Files/Packages/Help (bottom right).', 'Create first_script.R in RStudio using File > New File > R Script.', 'Run a line or selection: Ctrl+Enter (Windows/Linux), Cmd+Return (Mac).', 'Run the whole file with Source. print() makes results visible when sourcing.', 'Optional practice: change 20000 to 25000. The new mean is about 31666.67.', 'After running the example, try these two lines in RStudio:', 'df <- data.frame(annual_income = incomes)', 'View(df)', 'View(df) opens an Excel-like table in the Data Viewer.'],
-      sources:[{label:'RStudio pane layout',url:'https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html'},{label:'Running code in RStudio',url:'https://docs.posit.co/ide/user/ide/guide/code/execution.html'},{label:'RStudio keyboard shortcuts',url:'https://docs.posit.co/ide/user/ide/reference/shortcuts.html'},{label:'RStudio Data Viewer',url:'https://docs.posit.co/ide/user/ide/guide/data/data-viewer.html'}],
+      ...taskDefaults, id:'inequality-inspect', title:'Inspect the dataset', heading:'Understand what each row represents.',
+      intro:'Check the size and structure of the data before starting your comparison.',
+      section:'What is in df?',
+      body:`<p>${inequalityFullDescription}</p>`,
+      setup:rawSetup,
+      taskTitle:'Count observations and list variables',
+      task:'<p>Save the number of rows in <code>df</code> as <code>n_observations</code>, and its column names as <code>column_names</code>. Display both objects.</p>',
+      solution:'n_observations <- nrow(df)\ncolumn_names <- names(df)\nn_observations\ncolumn_names',
+      hints:['Use nrow() to count rows and names() to list the columns.', 'Save each result with <-. Write each object’s name on a separate line to display it.'],
+      checkPrintedOutput:true,
+      check:'exists("n_observations", inherits = FALSE) && isTRUE(all.equal(n_observations, nrow(.wid_source))) && exists("column_names", inherits = FALSE) && identical(column_names, names(.wid_source)) && grepl(as.character(n_observations), .printed_output, fixed = TRUE) && all(vapply(column_names, function(name) grepl(name, .printed_output, fixed = TRUE), logical(1)))',
+      success:'Correct: 360 observations and four columns. The rows cover four countries, 45 years and two income groups.',
+      mistakes:[{when:'exists("n_observations", inherits = FALSE) && isTRUE(all.equal(n_observations, 4L))',message:'That is the number of columns. Use nrow(df) to count observations.'}],
     },
     {
-      id:'desktop-project', title:'Projects, packages and course code', guide:true,
-      heading:'Keep your code. Bring it to the tutorial.',
-      intro:'Use one project folder for your scripts and data, then open the course downloads in RStudio.',
-      section:'Set up a place for your course work',
-      body:`<p>Choose <strong>File → New Project → New Directory → New Project</strong> and name the folder <code>mvpf-course</code>. Save your scripts there. Reopen the project using its <code>.Rproj</code> file. R then uses this folder as its working directory.</p>
-        <p>For a separate CSV, create a <code>data</code> subfolder and place the file inside it. For example, <code>read.csv("data/data_incomes.csv")</code> refers to a file inside your project. If R cannot find a file, check its location and spelling.</p>
-        <h2>Install once, load each session</h2><p>Packages add functions to R. Run the following command <strong>once in the RStudio Console</strong> to install the course packages. This needs an internet connection.</p>
-        <pre class="guide-inline-code"><code>install.packages(c("dplyr", "tidyr", "ggplot2"))</code></pre>
-        <p>Then put the <code>library()</code> lines at the top of each script that needs these packages. They load installed packages into your current R session. Run this small example after installation:</p>`,
-      packages:['dplyr','tidyr','ggplot2'],
-      example:'library(dplyr)\nlibrary(tidyr)\nlibrary(ggplot2)\n\npractice <- data.frame(income = c(20000, 30000, 40000))\nsummary_income <- practice %>%\n  summarise(mean_income = mean(income))\nprint(summary_income)',
-      noteTitle:'Use the downloads from this course.',
-      note:'Download code contains the complete examples and solutions for a module. Save a downloaded .R file in your project, open it with File → Open File and run it from the top. Course downloads embed their practice data, so they do not need a separate CSV download.',
-      guideAfter:'<p>If R reports “there is no package called …”, install that package, then run <code>library()</code> again. “Object not found” usually means an earlier line has not run or a name is misspelled.</p><p>Before a tutorial, save your script and use <strong>Session → Restart R</strong>, then run the file from the beginning. A script that recreates its own inputs is easier to reuse and share.</p>',
-      downloadNotes:['Create mvpf-course with File > New Project > New Directory > New Project.', 'Save scripts in the project folder and reopen its .Rproj file to continue.', 'Install the packages listed at the top of this download before running it.', 'Expected mean_income: 30000. Restart R and run from the beginning to check your workflow.'],
-      sources:[{label:'RStudio projects',url:'https://docs.posit.co/ide/user/ide/guide/code/projects.html'},{label:'Installing R packages',url:'https://stat.ethz.ch/R-manual/R-devel/library/utils/html/install.packages.html'}],
+      ...taskDefaults, id:'inequality-prepare', title:'Prepare the data', heading:'Choose the period and calculate percentages.',
+      intro:'Focus on the years since 2000 and express the income shares as percentages.',
+      section:'Prepare df for the analysis',
+      body:'<p>The source file covers 1980–2024. We will analyse 2000–2024.</p><p><code>income_share</code> stores the share as a fraction of 1, where 1 represents all of a country’s income. For example, <code>0.30</code> means that the group receives 30% of total income. To express the share as a percentage, multiply it by 100: <code>0.30 * 100</code> gives <code>30</code>.</p>',
+      setup:rawSetup, setupNote:inequalityDataNote,
+      taskTitle:'Filter and add share_pct',
+      task:'<p>Keep rows with <code>year</code> greater than or equal to 2000. Add <code>share_pct</code>, containing <code>income_share</code> as a percentage. Keep all existing columns, save the result as <code>df</code>, and display its first six rows.</p>',
+      solution:'df <- df %>%\n  filter(year >= 2000) %>%\n  mutate(share_pct = income_share * 100)\nhead(df)',
+      hints:['Use filter(year >= 2000) to choose the period. Then pass the result into mutate().', 'A fraction becomes a percentage when you multiply by 100: share_pct = income_share * 100. Assign the result back to df.'],
+      check:`exists("df", inherits = FALSE) && ${sameRows('df', analysisData)}`,
+      success:'Correct: df contains 200 observations for 2000–2024, with income shares expressed as percentages in share_pct.',
+      mistakes:[{when:'exists("df", inherits = FALSE) && "share_pct" %in% names(df) && isTRUE(all.equal(df$share_pct, df$income_share))',message:'The new column still contains fractions. Multiply income_share by 100.'},{when:'exists("df", inherits = FALSE) && is.data.frame(df) && any(df$year < 2000)',message:'Some earlier years remain. Keep only observations from 2000 onward, including 2000.'}],
     },
+    {
+      ...taskDefaults, id:'inequality-countries', title:'Compare the countries', heading:'Where does the top 10% receive the largest share?',
+      intro:'Compare all four countries in the same year: 2024.',
+      section:'Make a table for one year and one group',
+      body:'<p>To compare countries, use the same income definition, income group and year. Here we compare the percentage of pretax national income received by each country’s top 10%.</p>',
+      setup:analysisSetup, setupNote:inequalityAnalysisNote,
+      taskTitle:'Create country_comparison',
+      task:'<p>Create <code>country_comparison</code> using only the <code>top10</code> rows for 2024, which report the share of total income received by the <strong>top 10%</strong> of adults. Keep the columns <code>country</code> and <code>share_pct</code>. Sort from the largest share to the smallest, then display the table.</p>',
+      solution:'country_comparison <- df %>%\n  filter(year == 2024, group == "top10") %>%\n  select(country, share_pct) %>%\n  arrange(desc(share_pct))\ncountry_comparison',
+      hints:['Use filter() with two conditions: year == 2024 and group == "top10". Then use select() for the two requested columns.', 'Use arrange(desc(share_pct)) for the largest value first. Save the result as country_comparison and display it.'],
+      check:`exists("country_comparison", inherits = FALSE) && ${sameRows('country_comparison', `local({ data <- ${analysisData}; data[data$year == 2024 & data$group == "top10", c("country", "share_pct")] })`, ['country'])} && all(diff(country_comparison$share_pct) <= 0)`,
+      success:'Correct: the table compares the top 10% income share in 2024, from largest to smallest.',
+      mistakes:[{when:'exists("country_comparison", inherits = FALSE) && nrow(country_comparison) != 4L',message:'There should be one row for each of the four countries. Select one year and one income group.'},{when:'exists("country_comparison", inherits = FALSE) && "share_pct" %in% names(country_comparison) && any(diff(country_comparison$share_pct) > 0)',message:'Put the largest share first by using desc() inside arrange().'}],
+    },
+    {
+      ...taskDefaults, id:'inequality-reshape', title:'Reshape the data', heading:'Put the two income groups side by side.',
+      intro:'Create separate columns for the top 10% and bottom 50% income shares.',
+      section:'One row per country and year',
+      body:'<p>In <code>df</code>, the two income shares occupy separate rows. A wide table will put them in separate columns: <code>top10</code> contains the share of total income received by the <strong>top 10%</strong> of adults; <code>bottom50</code> contains the share of total income received by the <strong>bottom 50%</strong> of adults. Keep <code>country</code> and <code>year</code> to identify each row.</p>',
+      packages:['tidyr'], setup:analysisSetup, setupNote:inequalityAnalysisNote,
+      taskTitle:'Create comparison',
+      task:'<p>First select <code>country</code>, <code>year</code>, <code>group</code> and <code>share_pct</code> from <code>df</code>. Reshape them from long to wide format: use <code>group</code> for the new column names and <code>share_pct</code> for their values. Save the result as <code>comparison</code> and display its first six rows.</p>',
+      solution:'comparison <- df %>%\n  select(country, year, group, share_pct) %>%\n  pivot_wider(names_from = group, values_from = share_pct)\nhead(comparison)',
+      hints:['Use select() to keep the four requested columns. The original income_share column is not needed in the wide table.', 'Use pivot_wider(names_from = group, values_from = share_pct). The group labels become the column names.'],
+      check:`exists("comparison", inherits = FALSE) && ${sameRows('comparison', comparisonData, ['country','year'])}`,
+      success:'Correct: comparison has 100 rows, one per country and year, with both income-group shares in percent.',
+      mistakes:[{when:'exists("comparison", inherits = FALSE) && "income_share" %in% names(comparison)',message:'Select only country, year, group and share_pct before reshaping. Otherwise the original fractions can split a country-year into separate rows.'}],
+      quiz:{question:'What does one row of comparison describe?',options:['One person and their annual income','One country in one year, with a column for each income group’s share','One income group averaged across all four countries'],correct:1,explanation:'country and year identify a row. top10 contains the share of total income received by the top 10% of adults; bottom50 contains the share received by the bottom 50%. Both are in percent. They do not add to 100% because the income share of the middle 40% is not included.'},
+    },
+    {
+      ...taskDefaults, id:'inequality-change', title:'Measure change over time', heading:'How much has the top 10% share changed?',
+      intro:'Calculate the change between 2000 and 2024 separately for each country.',
+      section:'Compare the beginning and end of the period',
+      body:'<p>The <code>top10</code> column in <code>comparison</code> contains the share of total income received by the <strong>top 10%</strong> of adults, in percent. Subtract its value in 2000 from its value in 2024 to obtain a change in <strong>percentage points</strong>. A positive result means the top 10% received a larger share in 2024.</p>',
+      noteTitle:'Percentage points and percent',
+      note:'When you subtract two percentages, the result is in <strong>percentage points</strong>, not percent. For example, an increase from 20% to 25% is <strong>5 percentage points</strong>. Relative to the starting value of 20%, this is a 25% increase.',
+      setup:comparisonSetup, setupNote:inequalityComparisonNote,
+      taskTitle:'Create changes',
+      task:'<p>Create a summary table called <code>changes</code> with one row per <code>country</code>. Add <code>change_pp</code>: the top 10% share in 2024 minus the top 10% share in 2000. Display the table.</p>',
+      solution:'changes <- comparison %>%\n  group_by(country) %>%\n  summarise(change_pp = top10[year == 2024] - top10[year == 2000])\nchanges',
+      hints:['Use group_by(country) before summarise(). Within each country, select the relevant value using a condition in square brackets.', 'top10[year == 2024] selects the share of total income received by the top 10% in 2024. Subtract top10[year == 2000] and name the result change_pp.'],
+      check:`exists("changes", inherits = FALSE) && ${sameRows('changes', `local({ data <- ${comparisonData}; first <- data[data$year == 2000, c("country","top10")]; last <- data[data$year == 2024, c("country","top10")]; joined <- merge(first, last, by = "country"); data.frame(country = joined$country, change_pp = joined$top10.y - joined$top10.x) })`, ['country'])}`,
+      success:'Correct: change_pp measures the change in percentage points for each country. Compare the values to see where the top 10% share increased most over this period.',
+      mistakes:[{when:'exists("changes", inherits = FALSE) && is.data.frame(changes) && nrow(changes) != 4L',message:'Calculate one change per country. Group by country before summarising.'}],
+    },
+    {
+      ...taskDefaults, id:'inequality-plot', title:'Plot the trends', heading:'Compare changes over time.',
+      intro:'Use a line graph to see how each country’s top 10% income share developed between 2000 and 2024.',
+      section:'One line per country',
+      body:'<p>Illustrate how the share of total income received by the top 10% changes over time using a line graph, with one line for each country.</p>',
+      packages:['ggplot2'], setup:analysisSetup, setupNote:inequalityAnalysisNote,
+      taskTitle:'Create and display p',
+      task:'<p>Create a line graph called <code>p</code> using the <code>top10</code> rows from <code>df</code>. Put <code>year</code> on the x-axis, <code>share_pct</code> on the y-axis, and map colour to <code>country</code>. Label the axes <strong>Year</strong> and <strong>Top 10% income share (%)</strong>. Add the caption <strong>Source: WID.world</strong>, use <code>theme_minimal()</code> and display the graph.</p>',
+      solution:plotCode,
+      hints:['Start with p <- df %>% filter(group == "top10") %>% ggplot(aes(...)). This passes the selected rows to ggplot() and leaves df unchanged. Map year, share_pct and colour = country, then add geom_line() with +.', 'Use labs(x = "Year", y = "Top 10% income share (%)", caption = "Source: WID.world") for the labels and source. Add theme_minimal(), save as p and write p on a new line.'],
+      checkGraphics:true, check:plotCheck,
+      success:'Correct: each line shows the top 10% income share in one country over time. A higher line means a larger share of that country’s total income goes to the top 10%.',
+      mistakes:[{when:'exists("p", inherits = FALSE) && inherits(p, "ggplot") && is.data.frame(p$data) && "group" %in% names(p$data) && any(p$data$group != "top10")',message:'The graph includes the bottom50 rows. Filter for group == "top10" before passing the data to ggplot().'}, {when:'exists("p", inherits = FALSE) && inherits(p, "ggplot") && .plot_count == 0',message:'Your plot object exists. Write p on a new line to display it.'},{when:'exists("p", inherits = FALSE) && inherits(p, "ggplot") && !identical(p$labels$caption, "Source: WID.world")',message:'Add the data source with labs(caption = "Source: WID.world").'}],
+      quiz:{question:'What does an increase in a country’s line mean?',options:['The top 10% receive a larger share of that country’s total pretax income','More than 10% of adults now belong to the top 10%','Average income necessarily increased for everyone in that country'],correct:0,explanation:'The y-axis measures the share of income received by the top 10%. It does not show the level of average income. The top group remains 10% of adults, although its members can change over time.'},
+    },
+
   ],
 };

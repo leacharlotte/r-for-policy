@@ -1,9 +1,9 @@
 import './style.css';
 import { EditorView, keymap, lineNumbers, highlightActiveLineGutter, drawSelection } from '@codemirror/view';
 import { EditorState } from '@codemirror/state';
-import { defaultKeymap, history, historyKeymap } from '@codemirror/commands';
-import { StreamLanguage, syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
-import { r } from '@codemirror/legacy-modes/mode/r';
+import { defaultKeymap, history, historyKeymap, indentWithTab } from '@codemirror/commands';
+import { syntaxHighlighting, defaultHighlightStyle, bracketMatching } from '@codemirror/language';
+import { rEditorLanguage } from './r-editor.js';
 import { modules } from './course.js';
 import { execute, observeRuntime, explainError, restartR, isBusy } from './runtime.js';
 
@@ -39,7 +39,7 @@ document.querySelector('#app').innerHTML = `
   <div class="course-progress"><div><span>Exercises solved</span><span id="progress-count">0 / ${exerciseCount}</span></div><progress id="progress" value="0" max="${exerciseCount}" aria-label="Exercises solved"></progress><small>Progress stays in this tab.</small></div>
   <div class="sidebar-bottom">
     <details class="reference"><summary>R quick reference</summary><dl><dt><code>x &lt;- 100</code></dt><dd>Save a value</dd><dt><code>c(1, 2, 3)</code></dt><dd>Combine values</dd><dt><code>sum(x)</code> · <code>mean(x)</code></dt><dd>Add or average</dd><dt><code>x[x &gt; 0]</code></dt><dd>Select positive values</dd><dt><code>filter()</code> · <code>select()</code></dt><dd>Keep rows or columns</dd><dt><code>mutate()</code></dt><dd>Calculate columns</dd><dt><code>group_by()</code> · <code>summarise()</code></dt><dd>Aggregate within groups</dd></dl></details>
-    <details class="reference"><summary>Practice data</summary><p>Synthetic income profiles for practice. Generated for learning; no real observations.</p><a href="${base}data/data_incomes.csv" download>Modules 3–6 · Income by age and gender</a></details>
+    <details class="reference"><summary>Practice data</summary><p>Datasets used in the course. The practice project uses published WID estimates.</p><a href="${base}data/data_incomes.csv" download>Modules 3–7 · Synthetic income profiles</a><a href="${base}data/data_inequality.csv" download>Module 8 · WID income inequality</a></details>
     <span class="small-rule"></span><p>Public Policy Evaluation</p>
   </div>
 </aside>
@@ -91,7 +91,7 @@ function renderHome() {
     </section>
     <section class="home-how" aria-labelledby="how-heading">
       <h2 id="how-heading">How to use this course</h2>
-      <p>In the interactive lessons, run the worked example, change a few values and try the exercise yourself. Use <strong>Check answer</strong> for feedback, then explore the hints or compare your code with the solution.</p>
+      <p>In the interactive lessons, run the worked example, change a few values and try the exercise yourself. Use <strong>Check answer</strong> for feedback, then explore the hints or compare your code with the solution. In the practice project, write your own code in short steps, with hints available whenever you need them.</p>
       <p><strong>Download code</strong> in each module gives you all its examples and solutions.${desktopModule ? ` Module ${Number(desktopModule.number)} shows you how to install R and RStudio and run these scripts on your own computer.` : ''}</p>
       <p class="home-session">Your edits and progress stay in this tab as you move between the start page and lessons. Reloading or closing the tab resets them.</p>
     </section>`;
@@ -99,22 +99,24 @@ function renderHome() {
 }
 
 function guideMarkup(lesson) {
-  return `<section class="code-card" aria-label="Code to run in RStudio">
-    <div class="code-top"><span><b class="r-chip">R</b> RUN IN RSTUDIO</span><span>${active.module.number}_${lesson.id}.R</span></div>
+  return `${lesson.setupNote ? `<div class="setup-note">${lesson.setupNote}</div>` : ''}<section class="code-card" aria-label="${escape(lesson.exampleLabel || 'Code to run in RStudio')}">
+    <div class="code-top"><span><b class="r-chip">R</b> ${escape((lesson.exampleLabel || 'Run in RStudio').toUpperCase())}</span><span>${active.module.number}_${lesson.id}.R</span></div>
     <pre class="guide-code"><code>${escape(lesson.example)}</code></pre>
     <div class="code-actions"><button id="copy-guide-code" class="button-outline">Copy code</button><span id="copy-status" role="status"></span></div>
   </section>
   <div class="note"><span class="note-symbol" aria-hidden="true">↳</span><div><strong>${lesson.noteTitle}</strong><p>${lesson.note}</p></div></div>
   <section class="prose">${lesson.guideAfter}</section>
+  ${quizMarkup(lesson.quiz)}
   <p class="session-note">Follow these steps in RStudio on your computer. Download code includes all examples in this module.</p>
   <div class="guide-sources"><span>Official guides</span>${lesson.sources.map(source=>`<a href="${source.url}" target="_blank" rel="noopener noreferrer">${source.label} ↗</a>`).join('')}</div>`;
 }
 
 function card(kind) {
-  const label = kind === 'exercise' ? 'Your exercise' : kind === 'followup' ? 'Follow-up example' : 'Worked example';
+  const label = kind === 'exercise' ? 'Your exercise' : kind === 'followup' ? (active.lesson.followUp.exampleLabel || 'Follow-up example') : 'Worked example';
   return `<section class="code-card" aria-label="${label}" id="${kind}-card">
-    <div class="code-top"><span><b class="r-chip">R</b> ${kind === 'exercise' ? 'YOUR CODE' : kind === 'followup' ? 'FOLLOW-UP EXAMPLE' : 'WORKED EXAMPLE'}</span><span>${active.module.number}_${active.lesson.id}.R</span></div>
+    <div class="code-top"><span><b class="r-chip">R</b> ${kind === 'exercise' ? 'YOUR CODE' : escape(label.toUpperCase())}</span><span>${active.module.number}_${active.lesson.id}.R</span></div>
     <div class="editor" id="${kind}-editor"></div>
+    <p class="editor-keyboard-help" id="${kind}-keyboard-help">Tab: indent · Shift+Tab: outdent · Esc, then Tab: leave the editor</p>
     <div class="code-actions"><button class="button-primary r-action" id="run-${kind}">${icons.play} Run code</button>${kind === 'exercise' ? `<button class="button-check r-action" id="check-answer">${icons.check} Check answer</button>`:''}<button class="button-reset" id="reset-${kind}" aria-label="Reset ${kind === 'example'?'example':kind==='followup'?'follow-up':'exercise'} code" title="Reset to the original code">${icons.reset}<span>Reset</span></button><span class="keyboard-note">⌘ / Ctrl + Enter</span></div>
     <div class="output" id="${kind}-output" aria-live="polite"><span class="output-label">OUTPUT</span><pre class="empty-output">Run the code to see the result.</pre></div>
     <div class="feedback" id="${kind}-feedback" role="status" hidden></div>
@@ -124,7 +126,7 @@ function card(kind) {
 function followUpMarkup(lesson) {
   const section = lesson.followUp;
   if (!section) return '';
-  return `<section class="prose"><h2>${section.title}</h2>${section.body}</section>${card('followup')}${section.note ? `<div class="prose"><p>${escape(section.note)}</p></div>` : ''}`;
+  return `<section class="prose"><h2>${section.title}</h2>${section.body}</section>${section.setupNote ? `<div class="setup-note">${section.setupNote}</div>` : ''}${card('followup')}${section.note ? `<div class="prose"><p>${escape(section.note)}</p></div>` : ''}`;
 }
 
 function dictionary() {
@@ -140,16 +142,24 @@ function renderLesson() {
   editors.forEach(editor=>editor.destroy());
   editors = [];
   let [moduleId, lessonId] = location.hash.slice(1).split('/');
-  if (moduleId === 'module-8' && !modules.some(module=>module.id===moduleId)) {
-    const desktopModule = modules.find(module=>module.lessons.some(lesson=>lesson.guide && lesson.id===lessonId));
-    if (desktopModule) {
-      moduleId = desktopModule.id;
+  // Keep links to earlier practice-project lessons useful after curriculum changes.
+  const projectAliases = {'housing-import':'inequality-import', 'housing-inspect':'inequality-inspect', 'housing-clean':'inequality-prepare', 'housing-share':'inequality-prepare', 'housing-summary':'inequality-countries', 'housing-plot':'inequality-plot', 'housing-save':'inequality-plot', 'inequality-save':'inequality-plot', 'housing-subsidy':'inequality-change'};
+  if (['module-8', 'module-9'].includes(moduleId) && Object.hasOwn(projectAliases, lessonId)) {
+    moduleId = 'module-8';
+    lessonId = projectAliases[lessonId];
+    window.history.replaceState(null, '', `#${moduleId}/${lessonId}`);
+  }
+  // Preserve existing lesson links after moving the practice project and RStudio modules.
+  if (['module-7', 'module-8', 'module-9'].includes(moduleId) && !modules.some(module=>module.id===moduleId && module.lessons.some(lesson=>lesson.id===lessonId))) {
+    const movedModule = modules.find(module=>['module-8', 'module-9'].includes(module.id) && module.lessons.some(lesson=>lesson.id===lessonId));
+    if (movedModule) {
+      moduleId = movedModule.id;
       window.history.replaceState(null, '', `#${moduleId}/${lessonId}`);
     }
   }
-  if (moduleId === 'module-7' && lessonId === 'weighted-averages') {
-    moduleId = 'module-5';
-    window.history.replaceState(null, '', '#module-5/weighted-averages');
+  if (moduleId === 'module-5' && lessonId === 'weighted-averages') {
+    moduleId = 'module-7';
+    window.history.replaceState(null, '', '#module-7/weighted-averages');
   }
   const module = modules.find(item=>item.id===moduleId);
   if(!module){renderHome();return;}
@@ -160,8 +170,10 @@ function renderLesson() {
   const globalIndex = allLessons.findIndex(item=>item.lesson.id===lesson.id);
   const previous = allLessons[globalIndex - 1];
   const next = allLessons[globalIndex + 1];
-  const downloadDescription = `Download code: all Module ${module.number} examples${module.lessons.some(item=>!item.guide)?' and solutions':''}`;
-  const titleMarker = lesson.titleMarker ? `<span class="lesson-marker${lesson.titleMarkerPosition === 'before' ? ' lesson-marker-before' : ''}">${escape(lesson.titleMarker)}</span>` : '';
+  const hasExamples = module.lessons.some(item => item.example !== undefined || item.followUp);
+  const downloadDescription = `Download code: all Module ${module.number} ${hasExamples ? 'examples' : 'solutions'}${hasExamples && module.lessons.some(item=>!item.guide)?' and solutions':''}`;
+  const markerText = lesson.titleMarker || module.titleMarker;
+  const titleMarker = markerText ? `<span class="lesson-marker${lesson.titleMarkerPosition === 'before' ? ' lesson-marker-before' : ''}">${escape(markerText)}</span>` : '';
   document.title = `${lesson.title} — R for Policy`;
   renderNav();
   document.querySelector('#lesson').innerHTML = `
@@ -173,23 +185,29 @@ function renderLesson() {
     ${lesson.guide ? guideMarkup(lesson) : `
     ${lesson.table?dictionary():''}
     ${lesson.exampleSetupNote ? `<div class="setup-note">${lesson.exampleSetupNote}</div>` : ''}
-    ${card('example')}
+    ${lesson.example !== undefined ? card('example') : ''}
     ${lesson.quiz?.position === 'after-example' ? quizMarkup(lesson.quiz) : ''}
     ${lesson.note ? `<div class="note"><span class="note-symbol" aria-hidden="true">↳</span><div><strong>${lesson.noteTitle}</strong><p>${lesson.note}</p></div></div>` : ''}
     ${lesson.followUp?.position === 'before-exercise' ? followUpMarkup(lesson) : ''}
     ${lesson.exerciseIntro ? `<section class="prose"><h2>${lesson.exerciseIntro.title}</h2>${lesson.exerciseIntro.body}</section>` : ''}
     <section class="prose exercise-prompt"><span class="eyebrow">YOUR TURN</span><h2>${lesson.taskTitle}</h2>${lesson.task}</section>
-    ${lesson.setupNote?`<div class="setup-note">${lesson.setupNote}</div>`:lesson.setup?'<div class="setup-note">Ready to use: <code>df</code> contains the synthetic income data. <code>dplyr</code> is loaded for you.</div>':lesson.data?'<div class="setup-note">The practice file and <code>dplyr</code> are prepared when you run code.</div>':''}
+    ${lesson.setupNote ? `<div class="setup-note">${lesson.setupNote}</div>` : ''}
     ${card('exercise')}
     <div class="exercise-help"><button id="show-hint" class="hint-button">Need a hint? <span id="hint-count"></span></button><details id="solution"><summary>View solution</summary><div class="solution-body"><p>Compare the steps with your attempt, then try the exercise again on your own.</p><pre><code>${escape(lesson.solution)}</code></pre><button id="use-solution" class="button-outline">Load solution into editor</button></div></details></div>
     <div id="hints" class="hints" aria-live="polite"></div>
     ${lesson.followUp?.position !== 'before-exercise' ? followUpMarkup(lesson) : ''}
-    ${lesson.quiz?.position !== 'after-example' ? quizMarkup(lesson.quiz) : ''}
+    ${!['after-example','after-closing'].includes(lesson.quiz?.position) ? quizMarkup(lesson.quiz) : ''}
     ${lesson.closingContent ? `<div class="prose lesson-closing">${lesson.closingContent}</div>` : ''}
-    <p class="session-note">Each editor starts fresh when you run it. Your edits stay as you move between lessons and reset when you reload or close this tab. Download code contains all examples and solutions for this module.</p>`}
+    ${lesson.quiz?.position === 'after-closing' ? quizMarkup(lesson.quiz) : ''}
+    <p class="session-note">${lesson.example === undefined ? 'Each task starts with the prepared results of the earlier steps, so you only write the new code. ' : 'Each editor starts fresh when you run it. '}Your edits stay as you move between lessons and reset when you reload or close this tab. Download code contains ${hasExamples ? 'all examples and solutions' : 'the complete solution'} for this module.</p>`}
     <nav class="lesson-footer" aria-label="Lesson navigation"><div>${previous?`<a class="previous-lesson" href="${route(previous.module,previous.lesson)}">← Previous lesson</a>`:'<span>First steps in R</span>'}</div>${next?`<a class="next-lesson" href="${route(next.module,next.lesson)}"><span><small>${next.module.id !== module.id?'NEXT MODULE':'NEXT LESSON'}</small>${next.lesson.title}</span>${icons.arrow}</a>`:'<span class="course-end">Ready for the tutorials <span>Keep your code for the tutorials.</span></span>'}</nav>`;
 
   document.querySelector('#lesson-select').addEventListener('change',event=>{location.hash=event.target.value;});
+  if (lesson.quiz) {
+    document.querySelectorAll('input[name="understanding"]').forEach(input=>input.addEventListener('change',()=>{currentState.quizSelected=Number(input.value);currentState.quizChecked=false;document.querySelector('#quiz-feedback').textContent='';}));
+    document.querySelector('#check-reasoning').addEventListener('click',()=>{currentState.quizChecked=true;showQuiz();});
+    if(currentState.quizChecked)showQuiz();
+  }
   if (lesson.guide) {
     document.querySelector('#copy-guide-code').addEventListener('click',async()=>{
       const status = document.querySelector('#copy-status');
@@ -203,14 +221,15 @@ function renderLesson() {
     updateRuntime(runtimeStatus);
     return;
   }
-  for (const kind of ['example','exercise',...(lesson.followUp ? ['followup'] : [])]) {
+  const editorKinds = [...(lesson.example !== undefined ? ['example'] : []),'exercise',...(lesson.followUp ? ['followup'] : [])];
+  for (const kind of editorKinds) {
     const editor = new EditorView({
       state: EditorState.create({doc:currentState[kind],extensions:[
         lineNumbers(), highlightActiveLineGutter(), history(), drawSelection(), bracketMatching(),
-        StreamLanguage.define(r), syntaxHighlighting(defaultHighlightStyle),
-        keymap.of([{key:'Mod-Enter',run:()=>{run(kind,false);return true;}},...defaultKeymap,...historyKeymap]),
+        rEditorLanguage, syntaxHighlighting(defaultHighlightStyle),
+        keymap.of([{key:'Mod-Enter',run:()=>{run(kind,false);return true;}},indentWithTab,...defaultKeymap,...historyKeymap]),
         EditorView.lineWrapping, EditorState.tabSize.of(2),
-        EditorView.contentAttributes.of({'aria-label':kind==='example'?'Worked example R code':kind==='followup'?'Follow-up example R code':'Exercise R code','spellcheck':'false'}),
+        EditorView.contentAttributes.of({'aria-label':kind==='example'?'Worked example R code':kind==='followup'?'Follow-up example R code':'Exercise R code','aria-describedby':`${kind}-keyboard-help`,'spellcheck':'false'}),
         EditorView.updateListener.of(update=>{
           if (update.docChanged) {
             currentState[kind] = update.state.doc.toString();
@@ -235,15 +254,11 @@ function renderLesson() {
   document.querySelector('#check-answer').addEventListener('click',()=>run('exercise',true));
   document.querySelector('#show-hint').addEventListener('click',()=>{currentState.hints=Math.min(currentState.hints+1,lesson.hints.length);renderHints();});
   document.querySelector('#use-solution').addEventListener('click',()=>{
-    editors[1].dispatch({changes:{from:0,to:editors[1].state.doc.length,insert:lesson.solution}});
-    editors[1].focus();
+    const exerciseEditor = editors[editorKinds.indexOf('exercise')];
+    exerciseEditor.dispatch({changes:{from:0,to:exerciseEditor.state.doc.length,insert:lesson.solution}});
+    exerciseEditor.focus();
     document.querySelector('#exercise-card').scrollIntoView({behavior:'smooth',block:'center'});
   });
-  if (lesson.quiz) {
-    document.querySelectorAll('input[name="understanding"]').forEach(input=>input.addEventListener('change',()=>{currentState.quizSelected=Number(input.value);currentState.quizChecked=false;document.querySelector('#quiz-feedback').textContent='';}));
-    document.querySelector('#check-reasoning').addEventListener('click',()=>{currentState.quizChecked=true;showQuiz();});
-    if(currentState.quizChecked)showQuiz();
-  }
   renderHints();
   updateRuntime(runtimeStatus);
 }
@@ -268,11 +283,16 @@ function showResult(kind,result) {
   if(!output)return;
   output.innerHTML='<span class="output-label">OUTPUT</span>';
   const pre=document.createElement('pre');
-  pre.textContent=result ? (result.output || (result.plotUrls?.length ? '' : result.error ? result.error : 'Code ran successfully. Print an object by writing its name on a new line to see its value.')) : 'Run the code to see the result.';
+  pre.textContent=result ? (result.output || (result.plotUrls?.length ? '' : result.error ? result.error : result.files?.length ? 'Files are ready to download.' : 'Code ran successfully. Print an object by writing its name on a new line to see its value.')) : 'Run the code to see the result.';
   if(!result)pre.className='empty-output';
   if(result?.error)pre.className='error-output';
   output.append(pre);
   for(const source of result?.plotUrls||[]){const img=document.createElement('img');img.src=source;img.alt='Plot generated by your R code';img.className='r-plot';output.append(img);}
+  if(result?.files?.length){
+    const downloads=document.createElement('div');downloads.className='output-downloads';
+    for(const file of result.files){const link=document.createElement('a');link.href=file.url;link.download=file.name;link.className='button-outline';link.textContent=`Download ${file.name}`;downloads.append(link);}
+    output.append(downloads);
+  }
   feedback.hidden=true;
   if(result?.error){const explanation=explainError(result.error);if(explanation){feedback.textContent=explanation;feedback.className='feedback incorrect';feedback.hidden=false;}}
   else if(typeof result?.correct==='boolean'){feedback.innerHTML=`<span aria-hidden="true">${result.correct?'✓':'↳'}</span><span>${escape(result.feedback)}</span>`;feedback.className=`feedback ${result.correct?'correct':'incorrect'}`;feedback.hidden=false;}
@@ -290,6 +310,10 @@ async function run(kind,check=false) {
   result.plotUrls=[];
   for(const image of result.images||[]){const canvas=document.createElement('canvas');canvas.width=image.width;canvas.height=image.height;canvas.getContext('2d').drawImage(image,0,0);result.plotUrls.push(canvas.toDataURL());image.close?.();}
   delete result.images;
+  for(const file of result.files||[]){
+    file.url=await new Promise((resolve,reject)=>{const reader=new FileReader();reader.onload=()=>resolve(reader.result);reader.onerror=()=>reject(reader.error);reader.readAsDataURL(new Blob([file.bytes],{type:file.type}));});
+    delete file.bytes;
+  }
   if(check&&result.correct)solved.add(lesson.id);
   if(draft[kind]===code)draft.results[kind]=result;
   if(active?.lesson.id===lesson.id && draft[kind]===code)showResult(kind,result);

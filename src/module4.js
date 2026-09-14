@@ -1,10 +1,46 @@
+import { incomeDataNote } from './dataset-notes.js';
+import { linePlotCheck } from './plot-checks.js';
+
 const setup = 'df <- read.csv("data/data_incomes.csv")';
-const ready = {data:true, packages:['ggplot2'], setup,
-  setupNote:'<code>df</code> contains the synthetic female and male income profiles from Module 3. <code>dplyr</code> and <code>ggplot2</code> are loaded.'};
-const plotCheck = (data, y='annual_income', colour=false) => `exists("p", inherits=FALSE) && inherits(p, "ggplot") && isTRUE(all.equal(as.data.frame(p$data), as.data.frame(${data}), check.attributes=FALSE)) && rlang::as_label(p$mapping$x) == "age" && rlang::as_label(p$mapping$y) == "${y}" && any(vapply(p$layers, function(layer) inherits(layer$geom, "GeomLine"), logical(1)))${colour?' && rlang::as_label(p$mapping$colour) == "gender"':''}`;
+const ready = {data:true, packages:['ggplot2'], setup, checkGraphics:true,
+  setupNote:incomeDataNote};
+const plotCheck = (data, y='annual_income', colour=false, labels={}) => linePlotCheck({data, x:'age', y, colour:colour ? 'gender' : undefined, labels});
+const originalData = 'read.csv("data/data_incomes.csv")';
+const graphLabels = {title:'Income profiles by age', x:'Age', y:'Annual income (in 1000$)', colour:'Gender', caption:'Synthetic data for practice'};
+const labelledPlot = `p <- ggplot(df, aes(x = age, y = annual_income, colour = gender)) +
+  geom_line() +
+  labs(
+    title = "Income profiles by age",
+    x = "Age", y = "Annual income (in $)",
+    colour = "Gender", caption = "Synthetic data for practice"
+  ) +
+  theme_minimal()`;
+const plotMistakes = [
+  {when:'exists("p", inherits=FALSE) && inherits(p, "ggplot") && .plot_count == 0', message:'Write p on a new line to display the graph.'},
+  {when:'exists("p", inherits=FALSE) && inherits(p, "ggplot") && !any(vapply(p$layers, function(layer) inherits(layer$geom, "GeomLine"), logical(1)))', message:'Add geom_line() to draw the requested line graph. You can also keep geom_point().'},
+];
+// Read the PNG header and its resolution metadata without an extra R package.
+const savedPngCheck = `file.exists("my_income_plot.png") && local({
+  bytes <- readBin("my_income_plot.png", "raw", n = file.info("my_income_plot.png")$size)
+  number <- function(pos) sum(as.numeric(bytes[pos + 0:3]) * 256^(3:0))
+  if (length(bytes) < 33 || !identical(as.integer(bytes[1:8]), c(137L,80L,78L,71L,13L,10L,26L,10L))) return(FALSE)
+  width <- number(17); height <- number(21)
+  resolution <- NULL; pos <- 9
+  while (pos + 11 <= length(bytes)) {
+    size <- number(pos)
+    if (pos + size + 11 > length(bytes)) return(FALSE)
+    if (identical(bytes[pos + 4:7], charToRaw("pHYs")) && size == 9 && as.integer(bytes[pos + 16]) == 1) {
+      resolution <- c(number(pos + 8), number(pos + 12)) * 0.0254
+    }
+    pos <- pos + size + 12
+  }
+  abs(width - 16 / 2.54 * 300) <= 1 && abs(height - 10 / 2.54 * 300) <= 1 &&
+    length(resolution) == 2 && all(abs(resolution - 300) < 1)
+})`;
+
 export const module4 = {
-  id:'module-4',number:'04',title:'Creating graphs',
-  description:'Turn the synthetic income profiles from Module 3 into clear, labelled comparisons with ggplot2.',
+  id:'module-4',number:'04',title:'Creating graphs',titleMarker:'Intermediate',
+  description:'Create clear, labelled graphs with ggplot2 and save them as image or PDF files.',
   lessons:[
     {
       id:'graphs-first',title:'Draw your first income profile',heading:'From a table to a figure.',...ready,
@@ -21,7 +57,8 @@ export const module4 = {
       solution:'female_profile <- df %>%\n  filter(gender == "Female")\np <- ggplot(female_profile, aes(x = age, y = annual_income)) +\n  geom_line()\np',
       hints:['Use filter(gender == "Female") to keep one observation per age.', 'Use aes(x = age, y = annual_income), followed by + geom_line(). You can also add + geom_point().'],
       downloadNotes:['The exercise accepts geom_line() alone or a combination of geom_line() and geom_point().'],
-      check:plotCheck('df %>% filter(gender == "Female")'),success:'Correct: your first line shows the female income profile across all 46 ages. The horizontal position represents age; the vertical position represents mean annual income.',
+      mistakes:plotMistakes,
+      check:plotCheck(`${originalData} %>% filter(gender == "Female")`),success:'Correct: your first line shows the female income profile across all 46 ages. The horizontal position represents age; the vertical position represents mean annual income.',
     },
     {
       id:'graphs-compare',title:'Plot multiple groups',heading:'Two profiles. One set of axes.',...ready,
@@ -34,7 +71,8 @@ export const module4 = {
       starter:'p <- ggplot(df, aes(\n  x = age, y = annual_income, colour = ______\n)) +\n  geom_line()\np',
       solution:'p <- ggplot(df, aes(\n  x = age, y = annual_income, colour = gender\n)) +\n  geom_line()\np',
       hints:['Put the column name gender inside aes(), without quotation marks.', 'Use colour = gender. Setting colour = "gender" outside aes() does not map the data categories.'],
-      check:plotCheck('df','annual_income',true),success:'Correct: the graph has a separate line for each gender and a legend. You can now compare incomes at the same age.',
+      mistakes:plotMistakes,
+      check:plotCheck(originalData,'annual_income',true),success:'Correct: the graph has a separate line for each gender and a legend. You can now compare incomes at the same age.',
     },
     {
       id:'graphs-labels',title:'Add labels and clear units',heading:'Make the graph readable on its own.',...ready,
@@ -47,7 +85,49 @@ export const module4 = {
       starter:'plot_data <- df %>%\n  mutate(income_thousands = ______)\n\np <- ggplot(plot_data, aes(\n  x = age, y = ______, colour = gender\n)) +\n  geom_line() +\n  labs(\n    title = "Income profiles by age",\n    x = "Age", y = "Annual income (in 1000$)",\n    colour = "Gender", caption = "Synthetic data for practice"\n  ) +\n  theme_minimal()\np',
       solution:'plot_data <- df %>%\n  mutate(income_thousands = annual_income / 1000)\np <- ggplot(plot_data, aes(\n  x = age, y = income_thousands, colour = gender\n)) +\n  geom_line() +\n  labs(\n    title = "Income profiles by age",\n    x = "Age", y = "Annual income (in 1000$)",\n    colour = "Gender", caption = "Synthetic data for practice"\n  ) +\n  theme_minimal()\np',
       hints:['Use annual_income / 1000 in mutate().', 'Map y to income_thousands, the new column. The y-axis label then matches the plotted values.'],
-      check:plotCheck('df %>% mutate(income_thousands = annual_income / 1000)','income_thousands',true)+' && !is.null(p$labels$title) && !is.null(p$labels$x) && !is.null(p$labels$y) && !is.null(p$labels$caption)',success:'Correct: the graph shows annual income in thousands of dollars, with a title, labelled axes and a synthetic-data caption.',
+      mistakes:[...plotMistakes, {when:'exists("p", inherits=FALSE) && inherits(p, "ggplot") && !identical(p$labels$y, "Annual income (in 1000$)")',message:'The plotted incomes are in thousands of dollars. Use the y-axis label Annual income (in 1000$).'}, {when:'exists("p", inherits=FALSE) && inherits(p, "ggplot") && !identical(p$labels$caption, "Synthetic data for practice")',message:'Keep the caption Synthetic data for practice; these are generated practice data.'}],
+      check:plotCheck(`${originalData} %>% mutate(income_thousands = annual_income / 1000)`,'income_thousands',true,graphLabels),success:'Correct: the graph shows annual income in thousands of dollars, with a title, labelled axes and a synthetic-data caption.',
+    },
+    {
+      id:'graphs-save',title:'Save a graph',heading:'Save your graph as a file.',...ready,
+      downloadFiles:['png','pdf'],setup:`${setup}\n${labelledPlot}`,
+      intro:'Save a graph so you can use it in a report, presentation or assignment.',
+      section:'Save the graph you already created',
+      body:`<p>The example uses the graph from the previous lesson, stored in <code>p</code>.</p>
+        <p>To save this graph as a file, use <code>ggsave()</code> from <code>ggplot2</code>. Give it a filename and use <code>plot = p</code> to select the graph. For example, <code>ggsave("income_profiles.png", plot = p)</code> saves it as a PNG image. Change the ending to <code>.pdf</code> to save a PDF instead.</p>
+        <p>You can also choose the size of the saved graph with <code>width</code>, <code>height</code> and <code>units</code>. Below, both files are <strong>18 cm wide and 12 cm high</strong>. For the PNG, <code>dpi = 300</code> sets the image resolution to 300 dots per inch. <code>bg = "white"</code> gives the saved graph a white background.</p>`,
+      setupNote:null,
+      example:`library(ggplot2)
+
+# Recreate and display the graph from the previous lesson
+${labelledPlot}
+p
+
+# Save this graph as an image file
+ggsave("income_profiles.png", plot = p,
+       width = 18, height = 12, units = "cm", dpi = 300, bg = "white")
+
+# Save the same graph as a PDF
+ggsave("income_profiles.pdf", plot = p,
+       width = 18, height = 12, units = "cm", bg = "white")`,
+      noteTitle:'Download your saved graph.',
+      note:'On this website, ggsave() creates the files in your browser session. Use the download links below the output to save them to your computer. In RStudio, the files are saved in the working directory shown by getwd().',
+      taskTitle:'Save the graph as a PNG',
+      task:'<p>The graph <code>p</code> from the example is prepared for you. Save it as <code>my_income_plot.png</code>, with a width of <strong>16 cm</strong>, a height of <strong>10 cm</strong> and <code>dpi = 300</code>. Use <code>plot = p</code> and <code>units = "cm"</code>. Download the saved file using the link below the output.</p>',
+      starter:'p\n\n# Save the prepared graph\nggsave("______", plot = p,\n       width = ______, height = ______, units = "cm",\n       dpi = ______, bg = "white")',
+      solution:'p\n\nggsave("my_income_plot.png", plot = p,\n       width = 16, height = 10, units = "cm",\n       dpi = 300, bg = "white")',
+      hints:['Use "my_income_plot.png" as the filename. Keep plot = p to select the prepared graph.', 'Set width = 16, height = 10, units = "cm" and dpi = 300.'],
+      check:savedPngCheck,
+      success:'Correct: your PNG is 16 cm wide and 10 cm high at 300 dpi. Use the download link to save it to your computer.',
+      mistakes:[{when:'!file.exists("my_income_plot.png")',message:'Save the graph with ggsave() using the filename my_income_plot.png.'}, {when:'file.exists("my_income_plot.png")',message:'Check the saved image size and resolution: width = 16, height = 10, units = "cm" and dpi = 300.'}],
+      downloadNotes:[
+        'Reuse the labelled graph from the previous worked example, then save it with ggsave().',
+        'On the website, download the PNG and PDF below the output. In RStudio, ggsave() saves them in the current working directory.',
+        'getwd() shows the output folder. An existing file with the same name is replaced.',
+        'Your turn: save p as my_income_plot.png at 16 by 10 cm and 300 dpi.',
+        'ggsave("my_income_plot.png", plot = p, width = 16, height = 10, units = "cm", dpi = 300, bg = "white")',
+      ],
+      sources:[{label:'ggsave()',url:'https://ggplot2.tidyverse.org/reference/ggsave.html'}],
     },
   ],
 };

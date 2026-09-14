@@ -1,3 +1,5 @@
+import { incomeDataNote } from './dataset-notes.js';
+
 const fixedFunction = `tax_payment <- function(y) {
   tau <- -1
   rho <- 0.12
@@ -8,10 +10,10 @@ const flexibleFunction = `tax_payment <- function(y, tau = -1, rho = 0.12) {
 }`;
 const fixedCheck = 'exists("tax_payment", inherits=FALSE) && is.function(tax_payment) && "y" %in% names(formals(tax_payment)) && isTRUE(all.equal(tax_payment(c(0, 17500, 42000)), c(0, 17500, 42000) - 2/0.88 * c(0, 17500, 42000)^0.88))';
 const ready = {data:true, setup:'df <- read.csv("data/data_incomes.csv")',
-  setupNote:'<code>df</code> contains mean annual income (column <code>annual_income</code>) and the number of people for women and men at each age from 20 to 65. <code>dplyr</code> is loaded. Define your function in the editor before calling it.'};
+  setupNote:incomeDataNote};
 export const module5 = {
-  id:'module-5',number:'05',title:'Functions',
-  description:'Write a tax function, apply it to income data, make its parameters adjustable and calculate weighted means with a built-in function.',
+  id:'module-5',number:'05',title:'Functions',titleMarker:'Advanced',
+  description:'Write a tax function, apply it to income data and make its parameters adjustable.',
   lessons:[
     {
       id:'functions-first',title:'Write a function',heading:'Write the formula once. Use it many times.',
@@ -107,29 +109,6 @@ export const module5 = {
       hints:['Put tau = -1 and rho = 0.12 in the argument list. Keep the formula inside the braces, without fixed tau or rho assignments.', 'Use tax_payment(annual_income) for the baseline and tax_payment(annual_income, tau = -0.8, rho = 0.15) for the reform. Subtract the baseline from the reform.'],
       check:fixedCheck+' && all(c("tau","rho") %in% names(formals(tax_payment))) && isTRUE(all.equal(tax_payment(c(18000,51000), tau=-0.6, rho=0.2), c(18000,51000)-1.6/0.8*c(18000,51000)^0.8)) && isTRUE(all.equal(tax_payment(37000, tau=-0.8), 37000-1.8/0.88*37000^0.88)) && isTRUE(all.equal(tax_payment(37000, rho=0.15), 37000-2/0.85*37000^0.85)) && exists("comparison", inherits=FALSE) && isTRUE(all.equal(as.data.frame(comparison), as.data.frame(df %>% mutate(tax_base=annual_income-2/0.88*annual_income^0.88, tax_reform=annual_income-1.8/0.85*annual_income^0.85, tax_change=tax_reform-tax_base)), check.attributes=FALSE))',success:'Correct: your function accepts income and adjustable tax parameters, supports defaults and compares both schedules on the same 92 observations.',
       mistakes:[{when:'exists("tax_payment", inherits=FALSE) && is.function(tax_payment) && all(c("tau","rho") %in% names(formals(tax_payment))) && isTRUE(all.equal(tax_payment(40000, tau=-0.8, rho=0.15), tax_payment(40000)))',message:'Both schedules returned the same payment. Check whether fixed tau or rho assignments inside the function are overwriting your arguments.'}],
-    },
-    {
-      id:'weighted-averages',title:'Calculate a weighted mean',heading:'Calculate an average with weights.',
-      titleMarker:'Tools',
-      data:true,setup:ready.setup,
-      setupNote:'<code>df</code> contains mean annual income (column <code>annual_income</code>) and the number of people (column <code>n_people</code>) for women and men at each age from 20 to 65. Each row represents one age–gender group.',
-      intro:'A weighted mean is an average calculated by multiplying each value by its weight, adding these products and dividing by the sum of the weights.',
-      section:'How to calculate a weighted mean',
-      body:'<p><code>mean(income)</code> gives each group one equal contribution. If the groups differ in size, the mean across people requires a <strong>weighted average</strong>: multiply each group’s mean income by its number of people, add these totals, then divide by the total number of people.</p><p>The formula is <code>sum(income * people) / sum(people)</code>. Keep the income and population vectors in matching order. R also provides the built-in function <code>weighted.mean(income, w = people)</code> for the same calculation.</p><p>In this example, two groups have mean annual incomes of <strong>20,000 and 50,000</strong> and contain <strong>100 and 20 people</strong>.</p>',
-      example:'income <- c(20000, 50000)\npeople <- c(100, 20)\n\n# Give each group an equal contribution\nmean(income)\n\n# Give each person an equal contribution\ntotal_income <- sum(income * people)\ntotal_people <- sum(people)\naverage_income <- total_income / total_people\naverage_income\n\n# The built-in function gives the same result\nweighted.mean(income, w = people)',
-      noteTitle:'The denominator defines the population.',note:'The simple mean across the two groups is 35,000. The mean across all 120 people is 25,000. More people belong to the lower-income group, so it contributes more to the weighted mean.',
-      taskTitle:'Calculate average income from the data frame',task:'<p>Use <code>weighted.mean()</code> to calculate mean annual income across all people represented in <code>df</code>. Use the <code>annual_income</code> column for incomes and the <code>n_people</code> column as weights. Access these columns directly with <code>df$</code>. Save the result as <code>average_income</code> and display it.</p>',
-      closingContent:`<p>Alternatively, use <code>weighted.mean()</code> inside <code>summarise()</code>:</p>
-        <pre class="task-code"><code>df %&gt;%
-  summarise(
-    average_income = weighted.mean(annual_income, w = n_people)
-  )</code></pre>
-        <p>This calculates the same weighted mean and returns it in a data frame with one row and a column named <code>average_income</code>. Inside <code>summarise()</code>, you can use the column names directly. Both approaches are accepted.</p>`,
-      starter:'average_income <- weighted.mean(\n  ______,\n  w = ______\n)\naverage_income',
-      solution:'average_income <- weighted.mean(\n  df$annual_income,\n  w = df$n_people\n)\naverage_income\n\n# Alternative: calculate the same mean inside summarise()\ndf %>%\n  summarise(average_income = weighted.mean(annual_income, w = n_people))',
-      hints:['The first argument contains the incomes: df$annual_income. Inside summarise(), use annual_income directly.', 'Use w = df$n_people, or w = n_people inside summarise(), so that each group’s income is weighted by its number of people.'],
-      check:'if (exists(".answer", inherits=FALSE) && is.data.frame(.answer)) { nrow(.answer) == 1L && ncol(.answer) == 1L && isTRUE(all.equal(.answer[[1]], sum(df$annual_income * df$n_people) / sum(df$n_people))) } else { exists("average_income", inherits=FALSE) && isTRUE(all.equal(average_income, sum(df$annual_income * df$n_people) / sum(df$n_people))) }',success:'Correct: weighted.mean() uses the number of people in each group to calculate mean annual income across all people represented in df.',
-      mistakes:[{when:'(exists("average_income", inherits=FALSE) && isTRUE(all.equal(average_income, mean(df$annual_income)))) || (exists(".answer", inherits=FALSE) && is.data.frame(.answer) && nrow(.answer) == 1L && ncol(.answer) == 1L && isTRUE(all.equal(.answer[[1]], mean(df$annual_income))))',message:'This gives each age–gender group an equal contribution. Use w = df$n_people, or w = n_people inside summarise(), to calculate the mean across people.'}],
     },
   ],
 };

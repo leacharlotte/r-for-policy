@@ -1,0 +1,361 @@
+country,year,group,income_share
+France,1980,bottom50,0.2266
+France,1980,top10,0.2876
+France,1981,bottom50,0.2276
+France,1981,top10,0.2854
+France,1982,bottom50,0.2285
+France,1982,top10,0.2826
+France,1983,bottom50,0.2277
+France,1983,top10,0.2833
+France,1984,bottom50,0.2259
+France,1984,top10,0.285
+France,1985,bottom50,0.2261
+France,1985,top10,0.2891
+France,1986,bottom50,0.2239
+France,1986,top10,0.2978
+France,1987,bottom50,0.223
+France,1987,top10,0.3032
+France,1988,bottom50,0.2225
+France,1988,top10,0.3078
+France,1989,bottom50,0.2176
+France,1989,top10,0.315
+France,1990,bottom50,0.2153
+France,1990,top10,0.3156
+France,1991,bottom50,0.2194
+France,1991,top10,0.3107
+France,1992,bottom50,0.2168
+France,1992,top10,0.3077
+France,1993,bottom50,0.215
+France,1993,top10,0.3065
+France,1994,bottom50,0.2128
+France,1994,top10,0.312
+France,1995,bottom50,0.2131
+France,1995,top10,0.3132
+France,1996,bottom50,0.2105
+France,1996,top10,0.3222
+France,1997,bottom50,0.2073
+France,1997,top10,0.3262
+France,1998,bottom50,0.2054
+France,1998,top10,0.3329
+France,1999,bottom50,0.2061
+France,1999,top10,0.3325
+France,2000,bottom50,0.2054
+France,2000,top10,0.3359
+France,2001,bottom50,0.2067
+France,2001,top10,0.3378
+France,2002,bottom50,0.2037
+France,2002,top10,0.3361
+France,2003,bottom50,0.2019
+France,2003,top10,0.3375
+France,2004,bottom50,0.1994
+France,2004,top10,0.3431
+France,2005,bottom50,0.2
+France,2005,top10,0.3426
+France,2006,bottom50,0.2021
+France,2006,top10,0.3403
+France,2007,bottom50,0.1985
+France,2007,top10,0.3492
+France,2008,bottom50,0.1979
+France,2008,top10,0.352
+France,2009,bottom50,0.2032
+France,2009,top10,0.333
+France,2010,bottom50,0.2023
+France,2010,top10,0.3381
+France,2011,bottom50,0.2043
+France,2011,top10,0.3392
+France,2012,bottom50,0.2082
+France,2012,top10,0.3292
+France,2013,bottom50,0.2092
+France,2013,top10,0.3233
+France,2014,bottom50,0.2112
+France,2014,top10,0.3249
+France,2015,bottom50,0.2055
+France,2015,top10,0.3334
+France,2016,bottom50,0.2065
+France,2016,top10,0.3338
+France,2017,bottom50,0.2059
+France,2017,top10,0.3364
+France,2018,bottom50,0.2034
+France,2018,top10,0.3433
+France,2019,bottom50,0.2048
+France,2019,top10,0.3406
+France,2020,bottom50,0.2055
+France,2020,top10,0.3384
+France,2021,bottom50,0.2026
+France,2021,top10,0.349
+France,2022,bottom50,0.2034
+France,2022,top10,0.344
+France,2023,bottom50,0.203
+France,2023,top10,0.3403
+France,2024,bottom50,0.203
+France,2024,top10,0.3403
+Germany,1980,bottom50,0.2325
+Germany,1980,top10,0.286
+Germany,1981,bottom50,0.2338
+Germany,1981,top10,0.2814
+Germany,1982,bottom50,0.236
+Germany,1982,top10,0.2804
+Germany,1983,bottom50,0.2342
+Germany,1983,top10,0.2847
+Germany,1984,bottom50,0.237
+Germany,1984,top10,0.2849
+Germany,1985,bottom50,0.2359
+Germany,1985,top10,0.2871
+Germany,1986,bottom50,0.2334
+Germany,1986,top10,0.2937
+Germany,1987,bottom50,0.2304
+Germany,1987,top10,0.3015
+Germany,1988,bottom50,0.2239
+Germany,1988,top10,0.3159
+Germany,1989,bottom50,0.2177
+Germany,1989,top10,0.3246
+Germany,1990,bottom50,0.2162
+Germany,1990,top10,0.3255
+Germany,1991,bottom50,0.221
+Germany,1991,top10,0.3149
+Germany,1992,bottom50,0.224
+Germany,1992,top10,0.3096
+Germany,1993,bottom50,0.2273
+Germany,1993,top10,0.3043
+Germany,1994,bottom50,0.229
+Germany,1994,top10,0.2997
+Germany,1995,bottom50,0.2309
+Germany,1995,top10,0.2979
+Germany,1996,bottom50,0.2248
+Germany,1996,top10,0.3064
+Germany,1997,bottom50,0.2201
+Germany,1997,top10,0.3154
+Germany,1998,bottom50,0.2151
+Germany,1998,top10,0.3217
+Germany,1999,bottom50,0.2155
+Germany,1999,top10,0.3213
+Germany,2000,bottom50,0.2162
+Germany,2000,top10,0.3229
+Germany,2001,bottom50,0.2153
+Germany,2001,top10,0.3239
+Germany,2002,bottom50,0.2096
+Germany,2002,top10,0.3241
+Germany,2003,bottom50,0.2149
+Germany,2003,top10,0.3165
+Germany,2004,bottom50,0.2105
+Germany,2004,top10,0.3289
+Germany,2005,bottom50,0.198
+Germany,2005,top10,0.3481
+Germany,2006,bottom50,0.1972
+Germany,2006,top10,0.3531
+Germany,2007,bottom50,0.191
+Germany,2007,top10,0.3691
+Germany,2008,bottom50,0.1909
+Germany,2008,top10,0.3676
+Germany,2009,bottom50,0.1911
+Germany,2009,top10,0.3725
+Germany,2010,bottom50,0.1931
+Germany,2010,top10,0.3669
+Germany,2011,bottom50,0.1908
+Germany,2011,top10,0.3679
+Germany,2012,bottom50,0.1897
+Germany,2012,top10,0.3632
+Germany,2013,bottom50,0.1827
+Germany,2013,top10,0.3776
+Germany,2014,bottom50,0.1814
+Germany,2014,top10,0.3826
+Germany,2015,bottom50,0.1824
+Germany,2015,top10,0.3817
+Germany,2016,bottom50,0.1843
+Germany,2016,top10,0.3811
+Germany,2017,bottom50,0.1858
+Germany,2017,top10,0.3781
+Germany,2018,bottom50,0.1885
+Germany,2018,top10,0.3737
+Germany,2019,bottom50,0.188
+Germany,2019,top10,0.3745
+Germany,2020,bottom50,0.188
+Germany,2020,top10,0.3745
+Germany,2021,bottom50,0.1882
+Germany,2021,top10,0.3742
+Germany,2022,bottom50,0.1878
+Germany,2022,top10,0.3764
+Germany,2023,bottom50,0.1877
+Germany,2023,top10,0.3765
+Germany,2024,bottom50,0.1877
+Germany,2024,top10,0.3765
+Switzerland,1980,bottom50,0.2373
+Switzerland,1980,top10,0.305
+Switzerland,1981,bottom50,0.2371
+Switzerland,1981,top10,0.3051
+Switzerland,1982,bottom50,0.237
+Switzerland,1982,top10,0.3072
+Switzerland,1983,bottom50,0.2365
+Switzerland,1983,top10,0.3092
+Switzerland,1984,bottom50,0.2345
+Switzerland,1984,top10,0.3112
+Switzerland,1985,bottom50,0.233
+Switzerland,1985,top10,0.3124
+Switzerland,1986,bottom50,0.2344
+Switzerland,1986,top10,0.3123
+Switzerland,1987,bottom50,0.2346
+Switzerland,1987,top10,0.3117
+Switzerland,1988,bottom50,0.2365
+Switzerland,1988,top10,0.3085
+Switzerland,1989,bottom50,0.2385
+Switzerland,1989,top10,0.305
+Switzerland,1990,bottom50,0.2376
+Switzerland,1990,top10,0.3029
+Switzerland,1991,bottom50,0.2398
+Switzerland,1991,top10,0.3016
+Switzerland,1992,bottom50,0.2386
+Switzerland,1992,top10,0.2994
+Switzerland,1993,bottom50,0.2379
+Switzerland,1993,top10,0.2978
+Switzerland,1994,bottom50,0.2402
+Switzerland,1994,top10,0.2983
+Switzerland,1995,bottom50,0.2419
+Switzerland,1995,top10,0.2983
+Switzerland,1996,bottom50,0.2348
+Switzerland,1996,top10,0.3138
+Switzerland,1997,bottom50,0.2327
+Switzerland,1997,top10,0.3197
+Switzerland,1998,bottom50,0.23
+Switzerland,1998,top10,0.3242
+Switzerland,1999,bottom50,0.2323
+Switzerland,1999,top10,0.3175
+Switzerland,2000,bottom50,0.2284
+Switzerland,2000,top10,0.3242
+Switzerland,2001,bottom50,0.2295
+Switzerland,2001,top10,0.3141
+Switzerland,2002,bottom50,0.2328
+Switzerland,2002,top10,0.3049
+Switzerland,2003,bottom50,0.2252
+Switzerland,2003,top10,0.3242
+Switzerland,2004,bottom50,0.2241
+Switzerland,2004,top10,0.3303
+Switzerland,2005,bottom50,0.2188
+Switzerland,2005,top10,0.3429
+Switzerland,2006,bottom50,0.2178
+Switzerland,2006,top10,0.3502
+Switzerland,2007,bottom50,0.2222
+Switzerland,2007,top10,0.3362
+Switzerland,2008,bottom50,0.2314
+Switzerland,2008,top10,0.3108
+Switzerland,2009,bottom50,0.2291
+Switzerland,2009,top10,0.3175
+Switzerland,2010,bottom50,0.22
+Switzerland,2010,top10,0.339
+Switzerland,2011,bottom50,0.2219
+Switzerland,2011,top10,0.3398
+Switzerland,2012,bottom50,0.225
+Switzerland,2012,top10,0.3299
+Switzerland,2013,bottom50,0.2235
+Switzerland,2013,top10,0.3311
+Switzerland,2014,bottom50,0.2239
+Switzerland,2014,top10,0.3289
+Switzerland,2015,bottom50,0.225
+Switzerland,2015,top10,0.3272
+Switzerland,2016,bottom50,0.2235
+Switzerland,2016,top10,0.3255
+Switzerland,2017,bottom50,0.2259
+Switzerland,2017,top10,0.3215
+Switzerland,2018,bottom50,0.2312
+Switzerland,2018,top10,0.3124
+Switzerland,2019,bottom50,0.2331
+Switzerland,2019,top10,0.3084
+Switzerland,2020,bottom50,0.2331
+Switzerland,2020,top10,0.3084
+Switzerland,2021,bottom50,0.2324
+Switzerland,2021,top10,0.3104
+Switzerland,2022,bottom50,0.228
+Switzerland,2022,top10,0.3201
+Switzerland,2023,bottom50,0.2304
+Switzerland,2023,top10,0.3146
+Switzerland,2024,bottom50,0.2304
+Switzerland,2024,top10,0.3146
+United States,1980,bottom50,0.2008
+United States,1980,top10,0.3384
+United States,1981,bottom50,0.1969
+United States,1981,top10,0.3433
+United States,1982,bottom50,0.1916
+United States,1982,top10,0.346
+United States,1983,bottom50,0.1832
+United States,1983,top10,0.3536
+United States,1984,bottom50,0.1796
+United States,1984,top10,0.3649
+United States,1985,bottom50,0.1782
+United States,1985,top10,0.3655
+United States,1986,bottom50,0.1761
+United States,1986,top10,0.3634
+United States,1987,bottom50,0.1736
+United States,1987,top10,0.3747
+United States,1988,bottom50,0.1687
+United States,1988,top10,0.3924
+United States,1989,bottom50,0.1698
+United States,1989,top10,0.3878
+United States,1990,bottom50,0.1685
+United States,1990,top10,0.3876
+United States,1991,bottom50,0.1671
+United States,1991,top10,0.3832
+United States,1992,bottom50,0.16
+United States,1992,top10,0.3941
+United States,1993,bottom50,0.1611
+United States,1993,top10,0.391
+United States,1994,bottom50,0.1617
+United States,1994,top10,0.3913
+United States,1995,bottom50,0.1574
+United States,1995,top10,0.399
+United States,1996,bottom50,0.1547
+United States,1996,top10,0.408
+United States,1997,bottom50,0.1524
+United States,1997,top10,0.4155
+United States,1998,bottom50,0.1528
+United States,1998,top10,0.4192
+United States,1999,bottom50,0.1514
+United States,1999,top10,0.4228
+United States,2000,bottom50,0.1506
+United States,2000,top10,0.4273
+United States,2001,bottom50,0.1531
+United States,2001,top10,0.4194
+United States,2002,bottom50,0.154
+United States,2002,top10,0.4149
+United States,2003,bottom50,0.1509
+United States,2003,top10,0.4164
+United States,2004,bottom50,0.1478
+United States,2004,top10,0.4242
+United States,2005,bottom50,0.1432
+United States,2005,top10,0.4359
+United States,2006,bottom50,0.1408
+United States,2006,top10,0.4429
+United States,2007,bottom50,0.1431
+United States,2007,top10,0.4404
+United States,2008,bottom50,0.1429
+United States,2008,top10,0.4356
+United States,2009,bottom50,0.1425
+United States,2009,top10,0.4245
+United States,2010,bottom50,0.1387
+United States,2010,top10,0.4381
+United States,2011,bottom50,0.1356
+United States,2011,top10,0.4426
+United States,2012,bottom50,0.1315
+United States,2012,top10,0.4559
+United States,2013,bottom50,0.1345
+United States,2013,top10,0.449
+United States,2014,bottom50,0.1314
+United States,2014,top10,0.4558
+United States,2015,bottom50,0.1321
+United States,2015,top10,0.455
+United States,2016,bottom50,0.1295
+United States,2016,top10,0.4536
+United States,2017,bottom50,0.1348
+United States,2017,top10,0.4546
+United States,2018,bottom50,0.1334
+United States,2018,top10,0.4581
+United States,2019,bottom50,0.1358
+United States,2019,top10,0.4567
+United States,2020,bottom50,0.137
+United States,2020,top10,0.4461
+United States,2021,bottom50,0.1346
+United States,2021,top10,0.4607
+United States,2022,bottom50,0.1334
+United States,2022,top10,0.4686
+United States,2023,bottom50,0.1344
+United States,2023,top10,0.4676
+United States,2024,bottom50,0.1344
+United States,2024,top10,0.4676

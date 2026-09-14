@@ -1,5 +1,5 @@
 export const module2 = {
-  id:'module-2',number:'02',title:'Vectors & formulas',
+  id:'module-2',number:'02',title:'Vectors & formulas',titleMarker:'Basics',
   description:'Calculate with vectors, use sum(), mean() and round(), and select values by position or condition.',
   lessons:[
     {

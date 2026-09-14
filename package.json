@@ -9,7 +9,9 @@
     "preview": "vite preview --host 127.0.0.1",
     "predev": "node scripts/generate-materials.mjs",
     "prebuild": "node scripts/generate-materials.mjs",
-    "generate:materials": "node scripts/generate-materials.mjs"
+    "generate:materials": "node scripts/generate-materials.mjs",
+    "check:editor": "node scripts/check-editor.mjs",
+    "check:exercises": "node scripts/check-exercises.mjs"
   },
   "dependencies": {
     "@codemirror/commands": "^6.8.1",
