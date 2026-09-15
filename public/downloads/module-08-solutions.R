@@ -13,8 +13,8 @@ library(ggplot2)
 # Snapshot downloaded 2026-09-14; original bulk series sptincj992.
 # France, Germany, Switzerland, United States; 1980-2024; top 10% and bottom 50%.
 # Share of pretax national income, equal-split adults aged 20 and older; fractions of 1.
-# top10 rows: share of total income received by the top 10% of adults.
-# bottom50 rows: share of total income received by the bottom 50% of adults.
+# top10 rows: share of total income received by the top 10% of adults by income.
+# bottom50 rows: share of total income received by the bottom 50% of adults by income.
 # group identifies the share; income_share stores its value as a fraction of 1.
 # Country/group labels simplified; WID values unchanged. Estimates may include interpolation or extrapolation.
 # Definitions and methodology: https://wid.world/codes-dictionary/ and https://wid.world/methodology/

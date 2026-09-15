@@ -35,8 +35,8 @@ mean(income)
 # Give each person an equal contribution
 total_income <- sum(income * people)
 total_people <- sum(people)
-average_income <- total_income / total_people
-average_income
+average_weighted_income <- total_income / total_people
+average_weighted_income
 
 # The built-in function gives the same result
 weighted.mean(income, w = people)
@@ -51,6 +51,12 @@ average_income
 # Alternative: calculate the same mean inside summarise()
 df %>%
   summarise(average_income = weighted.mean(annual_income, w = n_people))
+
+# WORKED EXAMPLE: Calculate the same mean with summarise()
+df %>%
+  summarise(
+    average_income = weighted.mean(annual_income, w = n_people)
+  )
 
 # ======================================================================
 # LESSON 2: Deflate an amount with CPI

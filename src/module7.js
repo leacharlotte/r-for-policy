@@ -6,7 +6,6 @@ export const module7 = {
   lessons:[
     {
       id:'weighted-averages',title:'Calculate a weighted mean',heading:'Calculate an average with weights.',
-      titleMarker:'Tools',
       data:true,setup:'df <- read.csv("data/data_incomes.csv")',
       setupNote:incomeDataNote,
       intro:'A weighted mean is an average calculated by multiplying each value by its weight, adding these products and dividing by the sum of the weights.',
@@ -31,15 +30,16 @@ export const module7 = {
         'Weighted mean: x_bar_w = sum(w_i * x_i) / sum(w_i), summing over groups i = 1, ..., n.',
         'Here x_i is group i\'s mean income, w_i is its number of people, and n is the number of groups.',
       ],
-      example:'income <- c(20000, 50000)\npeople <- c(100, 20)\n\n# Give each group an equal contribution\nmean(income)\n\n# Give each person an equal contribution\ntotal_income <- sum(income * people)\ntotal_people <- sum(people)\naverage_income <- total_income / total_people\naverage_income\n\n# The built-in function gives the same result\nweighted.mean(income, w = people)',
+      example:'income <- c(20000, 50000)\npeople <- c(100, 20)\n\n# Give each group an equal contribution\nmean(income)\n\n# Give each person an equal contribution\ntotal_income <- sum(income * people)\ntotal_people <- sum(people)\naverage_weighted_income <- total_income / total_people\naverage_weighted_income\n\n# The built-in function gives the same result\nweighted.mean(income, w = people)',
       noteTitle:'The denominator defines the population.',note:'The simple mean across the two groups is 35,000. The mean across all 120 people is 25,000. More people belong to the lower-income group, so it contributes more to the weighted mean.',
       taskTitle:'Calculate average income from the data frame',task:'<p>Use <code>weighted.mean()</code> to calculate mean annual income across all people represented in <code>df</code>. Use the <code>annual_income</code> column for incomes and the <code>n_people</code> column as weights. Access these columns directly with <code>df$</code>. Save the result as <code>average_income</code> and display it.</p>',
-      closingContent:`<p>Alternatively, use the built-in function <code>weighted.mean()</code> inside <code>summarise()</code>:</p>
-        <pre class="task-code"><code>df %&gt;%
-  summarise(
-    average_income = weighted.mean(annual_income, w = n_people)
-  )</code></pre>
-        <p>This calculates the same weighted mean and returns it in a data frame with one row and a column named <code>average_income</code>. Inside <code>summarise()</code>, you can use the column names directly. Both approaches are accepted.</p>`,
+      followUp:{
+        title:'Calculate the same mean with summarise()',
+        body:'<p>Alternatively, use the built-in function <code>weighted.mean()</code> inside <code>summarise()</code>. Inside <code>summarise()</code>, you can use the column names directly.</p>',
+        setupNote:incomeDataNote,
+        exampleLabel:'Worked example',
+        example:'df %>%\n  summarise(\n    average_income = weighted.mean(annual_income, w = n_people)\n  )',
+      },
       starter:'average_income <- weighted.mean(\n  ______,\n  w = ______\n)\naverage_income',
       solution:'average_income <- weighted.mean(\n  df$annual_income,\n  w = df$n_people\n)\naverage_income\n\n# Alternative: calculate the same mean inside summarise()\ndf %>%\n  summarise(average_income = weighted.mean(annual_income, w = n_people))',
       hints:['The first argument contains the incomes: df$annual_income. Inside summarise(), use annual_income directly.', 'Use w = df$n_people, or w = n_people inside summarise(), so that each group’s income is weighted by its number of people.'],
@@ -48,7 +48,6 @@ export const module7 = {
     },
     {
       id:'cpi-prices',title:'Deflate an amount with CPI',heading:'Different price years. The same purchasing power.',
-      titleMarker:'Tools',
       intro:'Before comparing monetary amounts from different years, we need to express them in a common price year. The consumer price index (CPI) provides the conversion factor.',
       section:'From nominal to real amounts',
       body:`<p>A <strong>nominal amount</strong> is an amount of money expressed in the prices of the year it refers to. A <strong>real amount</strong> expresses that amount in the prices of a chosen <strong>base year</strong>. This lets us compare amounts from different years after accounting for changes in prices.</p>
@@ -72,7 +71,7 @@ export const module7 = {
         'BLS CPI Inflation Calculator (linked in the course slides): https://www.bls.gov/data/inflation_calculator.htm',
       ],
       example:'CPI_base <- 100\nCPI_year <- 125\nnominal_amount <- 1000\n\nreal_amount <- nominal_amount * CPI_base / CPI_year\nreal_amount',
-      noteTitle:'A smaller number can represent the same purchasing power.',note:'The result does not mean money was lost. You changed the units in which the amount is expressed.',
+      noteTitle:'A smaller number can represent the same purchasing power.',note:'This conversion loses no value: with the CPI values in this example, $800 in 2020 prices buys what $1,000 in 2024 prices buys; only the units changed. Inflation erodes purchasing power in a different way: a fixed sum buys less as prices rise over time.',
       taskTitle:'Express a UBI payment in base-year prices',task:'<p>Suppose a universal basic income (UBI) payment is <strong>$1,500 per month in 2024</strong>. Using the CPI values below, express this monthly payment in <strong>2020 prices</strong>. Save the result as <code>real_amount</code> and display it.</p>',
       starter:'nominal_amount <- 1500\nCPI_base <- 100\nCPI_year <- 125\n\nreal_amount <- ______\nreal_amount',
       solution:'nominal_amount <- 1500\nCPI_base <- 100\nCPI_year <- 125\nreal_amount <- nominal_amount * CPI_base / CPI_year\nreal_amount',
@@ -82,7 +81,6 @@ export const module7 = {
     },
     {
       id:'cpi-table',title:'Use CPI data',heading:'Use CPI data to adjust incomes.',
-      titleMarker:'Tools',
       data:true,files:['data_cpi.csv','data_incomes.csv'],
       setup:'cpi <- read.csv("data/data_cpi.csv")\ndf <- read.csv("data/data_incomes.csv")',
       intro:'Use CPI data from statistical offices or central banks to express incomes in a common price year.',
@@ -101,7 +99,7 @@ cpi`,
         position:'before-exercise',title:'2. Deflate the incomes in a data frame',
         body:`<p>We now want to express the annual incomes in <code>df</code> in <strong>2022 prices</strong>. For this example, assume that all values in <code>annual_income</code> are in <strong>2024 prices</strong>. Every row therefore uses the CPI for 2024, regardless of the person’s age or gender.</p>
           <p>Use the CPI for the <strong>target year, 2022</strong>, divided by the CPI for the <strong>income’s original year, 2024</strong>: <code>110 / 125</code>. With <code>mutate()</code>, apply this ratio to every income and store the result in a new column called <code>real_income</code>. For example, an income of $22,000 becomes <code>22000 * 110 / 125 = 19360</code>, or $19,360 in 2022 prices.</p>
-          <p>In the code below, <code>filter(year == 2022)</code> selects the row for 2022. Then <code>base_row$CPI</code> takes its CPI value, which we store as <code>CPI_base</code>. We do the same for 2024 to obtain <code>CPI_year</code>.</p>`,
+          <p>In the code below, <code>filter(year == 2022)</code> selects the row for 2022 from the data frame <code>cpi</code> and saves it as <code>base_row</code>. <code>CPI</code> is the name of a column in <code>cpi</code>. Then <code>base_row$CPI</code> selects the value in that column for the 2022 row, which we store as <code>CPI_base</code>. We do the same for 2024 to obtain <code>CPI_year</code>.</p>`,
         setupNote:incomeAndCpiDataNote,
         example:`# The target price year is 2022
 base_row <- cpi %>% filter(year == 2022)
@@ -161,7 +159,6 @@ head(df_real)`,
     },
     {
       id:'npv-payment',title:'Discount a future payment',heading:'One future payment. Its value today.',
-      titleMarker:'Tools',
       intro:'Discounting expresses how much a future payment is worth today.',
       section:'Why do we discount future payments?',
       body:`<p>Money received today can be used immediately or invested to earn a return. If we receive the same amount later, we miss that opportunity in the meantime. <strong>Discounting</strong> lets us compare payments that arrive at different times by expressing their value today.</p>
@@ -193,7 +190,6 @@ head(df_real)`,
     },
     {
       id:'npv-stream',title:'Discount a stream of payments',heading:'Calculate the present value of several payments.',
-      titleMarker:'Tools',
       intro:'Discount each payment to today and add the results to find the present value of the whole payment stream.',
       section:'Discount first, then sum',
       body:`<p>Suppose you receive a payment today and further payments over the next three years. To find their combined value today, first calculate the <strong>present value of each payment</strong>. Then add these values to obtain the <strong>present value of the payment stream</strong>:</p>

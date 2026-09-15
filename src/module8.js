@@ -1,4 +1,4 @@
-import { inequalityDataNote, inequalityFullDescription, inequalityAnalysisNote, inequalityComparisonNote } from './dataset-notes.js';
+import { inequalityDataNote, inequalityGroupsDescription, inequalityAnalysisNote, inequalityComparisonNote } from './dataset-notes.js';
 import { linePlotCheck } from './plot-checks.js';
 
 const source = '.wid_source <- read.csv("data/data_inequality.csv")';
@@ -42,14 +42,14 @@ const plotCheck = linePlotCheck({
 const taskDefaults = {data:true, files:['data_inequality.csv'], starter:''};
 
 export const module8 = {
-  id:'module-8', number:'08', title:'Practice project', titleMarker:'Practice project',
+  id:'module-8', number:'08', title:'Practice project',
   description:'Use World Inequality Database data to compare income inequality across countries and over time. Write your own code in short steps.',
   lessons:[
     {
       ...taskDefaults, id:'inequality-import', title:'Read the WID data', heading:'How does income inequality differ across countries?',
       intro:'Investigate how income is distributed in France, Germany, Switzerland and the United States.',
       section:'Your practice project',
-      body:`<p>You will use data from the <a href="https://wid.world/data/" target="_blank" rel="noopener noreferrer">World Inequality Database (WID)</a> for 1980–2024. Compare the share of total income received by the <strong>top 10%</strong> and the <strong>bottom 50%</strong> of adults, then explore how the top 10% share has changed over time.</p>
+      body:`<p>You will use data from the <a href="https://wid.world/data/" target="_blank" rel="noopener noreferrer">World Inequality Database (WID)</a> for 1980–2024. Compare the share of total income received by the <strong>top 10%</strong> and the <strong>bottom 50%</strong> of adults by income, then explore how the top 10% share has changed over time.</p>
         <p>These are published estimates based on sources such as tax records, surveys and national accounts. We selected a small extract and simplified the labels; the income-share values are unchanged.</p>
         <p>Write a few lines in each empty editor. Use the hints when needed. Each later task starts with the prepared results of the previous steps, so you only need to write the new code.</p>
         <p><a href="data/data_inequality.csv" download>Download the WID extract</a></p>
@@ -67,7 +67,19 @@ export const module8 = {
       ...taskDefaults, id:'inequality-inspect', title:'Inspect the dataset', heading:'Understand what each row represents.',
       intro:'Check the size and structure of the data before starting your comparison.',
       section:'What is in df?',
-      body:`<p>${inequalityFullDescription}</p>`,
+      body:`<p>Each row reports an income share for one country and year. The following table shows the <strong>codebook</strong>: it lists each variable’s name and describes what it contains.</p>
+        <div class="data-dictionary"><div class="table-scroll"><table>
+          <caption>Codebook for df</caption>
+          <thead><tr><th scope="col">Variable name</th><th scope="col">Description</th></tr></thead>
+          <tbody>
+            <tr><td><code>country</code></td><td>The country: France, Germany, Switzerland or the United States.</td></tr>
+            <tr><td><code>year</code></td><td>The year the income share refers to, from 1980 to 2024.</td></tr>
+            <tr><td><code>group</code></td><td>Identifies which income share is reported. ${inequalityGroupsDescription}</td></tr>
+            <tr><td><code>income_share</code></td><td>The share of total income received by the group, stored as a fraction of 1.</td></tr>
+          </tbody>
+        </table></div></div>`,
+      noteTitle:'Definition: Top income share',
+      note:'For example, if a <code>top10</code> row has <code>income_share = 0.30</code>, the <strong>10% of adults with the highest incomes</strong> together receive <strong>30% of total income</strong> in that country and year.',
       setup:rawSetup,
       taskTitle:'Count observations and list variables',
       task:'<p>Save the number of rows in <code>df</code> as <code>n_observations</code>, and its column names as <code>column_names</code>. Display both objects.</p>',
@@ -85,7 +97,7 @@ export const module8 = {
       body:'<p>The source file covers 1980–2024. We will analyse 2000–2024.</p><p><code>income_share</code> stores the share as a fraction of 1, where 1 represents all of a country’s income. For example, <code>0.30</code> means that the group receives 30% of total income. To express the share as a percentage, multiply it by 100: <code>0.30 * 100</code> gives <code>30</code>.</p>',
       setup:rawSetup, setupNote:inequalityDataNote,
       taskTitle:'Filter and add share_pct',
-      task:'<p>Keep rows with <code>year</code> greater than or equal to 2000. Add <code>share_pct</code>, containing <code>income_share</code> as a percentage. Keep all existing columns, save the result as <code>df</code>, and display its first six rows.</p>',
+      task:'<p>Filter the data frame so that you keep only rows with <code>year</code> greater than or equal to 2000. Use a pipe (<code>%&gt;%</code>) to pass the filtered data to <code>mutate()</code>. Add a new column called <code>share_pct</code> that contains <code>income_share</code> expressed as a percentage. Keep all existing columns, save the result as <code>df</code>, and display its first six rows.</p>',
       solution:'df <- df %>%\n  filter(year >= 2000) %>%\n  mutate(share_pct = income_share * 100)\nhead(df)',
       hints:['Use filter(year >= 2000) to choose the period. Then pass the result into mutate().', 'A fraction becomes a percentage when you multiply by 100: share_pct = income_share * 100. Assign the result back to df.'],
       check:`exists("df", inherits = FALSE) && ${sameRows('df', analysisData)}`,
@@ -99,7 +111,7 @@ export const module8 = {
       body:'<p>To compare countries, use the same income definition, income group and year. Here we compare the percentage of pretax national income received by each country’s top 10%.</p>',
       setup:analysisSetup, setupNote:inequalityAnalysisNote,
       taskTitle:'Create country_comparison',
-      task:'<p>Create <code>country_comparison</code> using only the <code>top10</code> rows for 2024, which report the share of total income received by the <strong>top 10%</strong> of adults. Keep the columns <code>country</code> and <code>share_pct</code>. Sort from the largest share to the smallest, then display the table.</p>',
+      task:'<p>Create <code>country_comparison</code> using only the <code>top10</code> rows for 2024, which report the share of total income received by the <strong>top 10%</strong> of adults by income. Keep the columns <code>country</code> and <code>share_pct</code>. Sort from the largest share to the smallest, then display the table.</p>',
       solution:'country_comparison <- df %>%\n  filter(year == 2024, group == "top10") %>%\n  select(country, share_pct) %>%\n  arrange(desc(share_pct))\ncountry_comparison',
       hints:['Use filter() with two conditions: year == 2024 and group == "top10". Then use select() for the two requested columns.', 'Use arrange(desc(share_pct)) for the largest value first. Save the result as country_comparison and display it.'],
       check:`exists("country_comparison", inherits = FALSE) && ${sameRows('country_comparison', `local({ data <- ${analysisData}; data[data$year == 2024 & data$group == "top10", c("country", "share_pct")] })`, ['country'])} && all(diff(country_comparison$share_pct) <= 0)`,
@@ -110,7 +122,7 @@ export const module8 = {
       ...taskDefaults, id:'inequality-reshape', title:'Reshape the data', heading:'Put the two income groups side by side.',
       intro:'Create separate columns for the top 10% and bottom 50% income shares.',
       section:'One row per country and year',
-      body:'<p>In <code>df</code>, the two income shares occupy separate rows. A wide table will put them in separate columns: <code>top10</code> contains the share of total income received by the <strong>top 10%</strong> of adults; <code>bottom50</code> contains the share of total income received by the <strong>bottom 50%</strong> of adults. Keep <code>country</code> and <code>year</code> to identify each row.</p>',
+      body:'<p>In <code>df</code>, the two income shares occupy separate rows. A wide table will put them in separate columns: <code>top10</code> contains the share of total income received by the <strong>top 10%</strong> of adults by income; <code>bottom50</code> contains the share of total income received by the <strong>bottom 50%</strong> of adults by income. Keep <code>country</code> and <code>year</code> to identify each row.</p>',
       packages:['tidyr'], setup:analysisSetup, setupNote:inequalityAnalysisNote,
       taskTitle:'Create comparison',
       task:'<p>First select <code>country</code>, <code>year</code>, <code>group</code> and <code>share_pct</code> from <code>df</code>. Reshape them from long to wide format: use <code>group</code> for the new column names and <code>share_pct</code> for their values. Save the result as <code>comparison</code> and display its first six rows.</p>',
@@ -119,13 +131,13 @@ export const module8 = {
       check:`exists("comparison", inherits = FALSE) && ${sameRows('comparison', comparisonData, ['country','year'])}`,
       success:'Correct: comparison has 100 rows, one per country and year, with both income-group shares in percent.',
       mistakes:[{when:'exists("comparison", inherits = FALSE) && "income_share" %in% names(comparison)',message:'Select only country, year, group and share_pct before reshaping. Otherwise the original fractions can split a country-year into separate rows.'}],
-      quiz:{question:'What does one row of comparison describe?',options:['One person and their annual income','One country in one year, with a column for each income group’s share','One income group averaged across all four countries'],correct:1,explanation:'country and year identify a row. top10 contains the share of total income received by the top 10% of adults; bottom50 contains the share received by the bottom 50%. Both are in percent. They do not add to 100% because the income share of the middle 40% is not included.'},
+      quiz:{question:'What does one row of comparison describe?',options:['One person and their annual income','One country in one year, with a column for each income group’s share','One income group averaged across all four countries'],correct:1,explanation:'country and year identify a row. top10 contains the share of total income received by the top 10% of adults by income; bottom50 contains the share received by the bottom 50% of adults by income. Both are in percent. They do not add to 100% because the income share of the middle 40% is not included.'},
     },
     {
       ...taskDefaults, id:'inequality-change', title:'Measure change over time', heading:'How much has the top 10% share changed?',
       intro:'Calculate the change between 2000 and 2024 separately for each country.',
       section:'Compare the beginning and end of the period',
-      body:'<p>The <code>top10</code> column in <code>comparison</code> contains the share of total income received by the <strong>top 10%</strong> of adults, in percent. Subtract its value in 2000 from its value in 2024 to obtain a change in <strong>percentage points</strong>. A positive result means the top 10% received a larger share in 2024.</p>',
+      body:'<p>The <code>top10</code> column in <code>comparison</code> contains the share of total income received by the <strong>top 10%</strong> of adults by income, in percent. Subtract its value in 2000 from its value in 2024 to obtain a change in <strong>percentage points</strong>. A positive result means the top 10% received a larger share in 2024.</p>',
       noteTitle:'Percentage points and percent',
       note:'When you subtract two percentages, the result is in <strong>percentage points</strong>, not percent. For example, an increase from 20% to 25% is <strong>5 percentage points</strong>. Relative to the starting value of 20%, this is a 25% increase.',
       setup:comparisonSetup, setupNote:inequalityComparisonNote,
