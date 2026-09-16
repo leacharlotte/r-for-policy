@@ -1,6 +1,6 @@
 export const module9 = {
   id:'module-9', number:'09', title:'R & RStudio',
-  description:'Install R and RStudio, run a script and keep your tutorial work in a project.',
+  description:'Install R and RStudio, save and run scripts, and set the working directory for your files.',
   lessons:[
     {
       id:'desktop-install', title:'Install R and RStudio', guide:true,
@@ -65,22 +65,53 @@ View(df)</code></pre>
       sources:[{label:'RStudio pane layout',url:'https://docs.posit.co/ide/user/ide/guide/ui/ui-panes.html'},{label:'Running code in RStudio',url:'https://docs.posit.co/ide/user/ide/guide/code/execution.html'},{label:'RStudio keyboard shortcuts',url:'https://docs.posit.co/ide/user/ide/reference/shortcuts.html'},{label:'RStudio Data Viewer',url:'https://docs.posit.co/ide/user/ide/guide/data/data-viewer.html'}],
     },
     {
-      id:'desktop-project', title:'Projects, packages and course code', guide:true,
+      id:'desktop-project', title:'Save scripts and set file paths', guide:true,
       heading:'Keep your code. Bring it to the tutorial.',
-      intro:'Use one project folder for your scripts and data, then open the course downloads in RStudio.',
-      section:'Set up a place for your course work',
-      body:`<p>Choose <strong>File → New Project → New Directory → New Project</strong> and name the folder <code>mvpf-course</code>. Save your scripts there. Reopen the project using its <code>.Rproj</code> file. R then uses this folder as its working directory.</p>
-        <p>For a separate CSV, create a <code>data</code> subfolder and place the file inside it. For example, <code>read.csv("data/data_incomes.csv")</code> refers to a file inside your project. If R cannot find a file, check its location and spelling.</p>
+      intro:'Save your code in R scripts and tell R where to find data and save results.',
+      section:'1. Save your R scripts',
+      body:`<p>Create a normal folder called <code>mvpf-course</code> on your computer, for example in Documents. In RStudio, choose <strong>File → Save As</strong> to save your script there as <code>tutorial.R</code>. Use <strong>Ctrl + S</strong> (Windows/Linux) or <strong>Cmd + S</strong> (Mac) to save later changes. To continue another day, open the file with <strong>File → Open File</strong>.</p>
+        <h2>2. Set the working directory</h2>
+        <p>The <strong>working directory</strong> is the folder R uses as the starting point for file paths. This tells R where to look for data and where to save results. Saving a script does not automatically set this folder.</p>
+        <p>In RStudio, choose <strong>Session → Set Working Directory → Choose Directory…</strong> and select your <code>mvpf-course</code> folder. Run <code>getwd()</code> in the Console to see which folder R is using.</p>
+        <p>You can also set the folder in your script with <code>setwd()</code>. Replace the example below with the path to your own <strong>existing folder</strong>:</p>
+        <pre class="guide-inline-code"><code># Example on a Mac: replace yourname with your username
+setwd("/Users/yourname/Documents/mvpf-course")
+
+# Check the working directory
+getwd()</code></pre>
+        <p>On Windows, a path might be <code>"C:/Users/yourname/Documents/mvpf-course"</code>. Use forward slashes (<code>/</code>) and keep the path in quotation marks. Put your adapted <code>setwd()</code> line near the top of your script and run it when you start a new R session.</p>
+        <h2>3. Use paths to read and save files</h2>
+        <p>A <strong>relative path</strong> starts from the working directory. Create a <code>data</code> subfolder inside <code>mvpf-course</code> and put <code>data_incomes.csv</code> there. With <code>mvpf-course</code> as the working directory, you can read it like this:</p>
+        <pre class="guide-inline-code"><code>df &lt;- read.csv("data/data_incomes.csv")
+head(df)</code></pre>
+        <p>An <strong>absolute path</strong> gives the full location, such as <code>"/Users/yourname/Documents/mvpf-course/data/data_incomes.csv"</code>. You can use it in <code>read.csv()</code> regardless of the current working directory.</p>
+        <p>For saving, <code>write.csv(df, "saved_incomes.csv", row.names = FALSE)</code> writes the file into the working directory. If R cannot find a file, check <code>getwd()</code>, the folder and the filename.</p>
         <h2>Install once, load each session</h2><p>Packages add functions to R. Run the following command <strong>once in the RStudio Console</strong> to install the course packages. This needs an internet connection.</p>
         <pre class="guide-inline-code"><code>install.packages(c("dplyr", "tidyr", "ggplot2", "readxl", "writexl"))</code></pre>
         <p>Then put the <code>library()</code> lines at the top of each script that needs these packages. They load installed packages into your current R session. Run this small example after installation:</p>`,
       packages:['dplyr','tidyr','ggplot2','readxl','writexl'],
       example:'library(dplyr)\nlibrary(tidyr)\nlibrary(ggplot2)\n\npractice <- data.frame(income = c(20000, 30000, 40000))\nsummary_income <- practice %>%\n  summarise(mean_income = mean(income))\nprint(summary_income)',
       noteTitle:'Use the downloads from this course.',
-      note:'Download code contains the complete examples and solutions for a module. Save a downloaded .R file in your project, open it with File → Open File and run it from the top. Course downloads embed their practice data, so they do not need a separate CSV download.',
+      note:'Download code contains the complete examples and solutions for a module. Save a downloaded .R file in your course folder, open it with File → Open File and run it from the top. Course downloads embed their practice data, so they do not need a separate CSV download.',
       guideAfter:'<p>If R reports “there is no package called …”, install that package, then run <code>library()</code> again. “Object not found” usually means an earlier line has not run or a name is misspelled.</p><p>Before a tutorial, save your script and use <strong>Session → Restart R</strong>, then run the file from the beginning. A script that recreates its own inputs is easier to reuse and share.</p>',
-      downloadNotes:['Create mvpf-course with File > New Project > New Directory > New Project.', 'Save scripts in the project folder and reopen its .Rproj file to continue.', 'Install the packages listed at the top of this download before running it.', 'Expected mean_income: 30000. Restart R and run from the beginning to check your workflow.'],
-      sources:[{label:'RStudio projects',url:'https://docs.posit.co/ide/user/ide/guide/code/projects.html'},{label:'Installing R packages',url:'https://stat.ethz.ch/R-manual/R-devel/library/utils/html/install.packages.html'}],
+      downloadNotes:[
+        'Create a normal mvpf-course folder and save your code there as a .R file with File > Save As.',
+        'Reopen scripts with File > Open File. Save changes with Ctrl+S (Windows/Linux) or Cmd+S (Mac).',
+        'The working directory is the starting folder for relative paths. Saving a script does not set it.',
+        'In RStudio, use Session > Set Working Directory > Choose Directory and select your course folder.',
+        'getwd() shows the working directory; setwd() changes it to an existing folder.',
+        'Alternatively, adapt one of these paths and add the command near the top of your script:',
+        'Mac example: setwd("/Users/yourname/Documents/mvpf-course")',
+        'Windows example: setwd("C:/Users/yourname/Documents/mvpf-course")',
+        'Use your own folder path, forward slashes and quotation marks. Run it in each new R session.',
+        'With mvpf-course as the working directory, read.csv("data/data_incomes.csv") reads from its data subfolder.',
+        'A full (absolute) file path can be used regardless of the working directory.',
+        'write.csv(df, "saved_incomes.csv", row.names = FALSE) saves in the working directory.',
+        'Course downloads embed practice data, so no separate CSV or working-directory change is needed to read them.',
+        'Install the packages listed at the top of this download before running it.',
+        'Expected mean_income: 30000. Restart R and run from the beginning to check your workflow.',
+      ],
+      sources:[{label:'Managing files in RStudio',url:'https://docs.posit.co/ide/user/ide/guide/ui/files.html'},{label:'Working directories in R: getwd() and setwd()',url:'https://stat.ethz.ch/R-manual/R-devel/library/base/html/getwd.html'},{label:'Installing R packages',url:'https://stat.ethz.ch/R-manual/R-devel/library/utils/html/install.packages.html'}],
     },
   ],
 };

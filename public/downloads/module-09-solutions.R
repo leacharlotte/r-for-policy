@@ -48,11 +48,22 @@ plot(incomes, type = "b",
      xlab = "Observation", ylab = "Annual income")
 
 # ======================================================================
-# LESSON 3: Projects, packages and course code
+# LESSON 3: Save scripts and set file paths
 # ======================================================================
 
-# Create mvpf-course with File > New Project > New Directory > New Project.
-# Save scripts in the project folder and reopen its .Rproj file to continue.
+# Create a normal mvpf-course folder and save your code there as a .R file with File > Save As.
+# Reopen scripts with File > Open File. Save changes with Ctrl+S (Windows/Linux) or Cmd+S (Mac).
+# The working directory is the starting folder for relative paths. Saving a script does not set it.
+# In RStudio, use Session > Set Working Directory > Choose Directory and select your course folder.
+# getwd() shows the working directory; setwd() changes it to an existing folder.
+# Alternatively, adapt one of these paths and add the command near the top of your script:
+# Mac example: setwd("/Users/yourname/Documents/mvpf-course")
+# Windows example: setwd("C:/Users/yourname/Documents/mvpf-course")
+# Use your own folder path, forward slashes and quotation marks. Run it in each new R session.
+# With mvpf-course as the working directory, read.csv("data/data_incomes.csv") reads from its data subfolder.
+# A full (absolute) file path can be used regardless of the working directory.
+# write.csv(df, "saved_incomes.csv", row.names = FALSE) saves in the working directory.
+# Course downloads embed practice data, so no separate CSV or working-directory change is needed to read them.
 # Install the packages listed at the top of this download before running it.
 # Expected mean_income: 30000. Restart R and run from the beginning to check your workflow.
 
